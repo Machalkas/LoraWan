@@ -1,10 +1,11 @@
 
+from datetime import timedelta
 import websocket
 import json
-import datetime
 import time
 import base64
 import json
+import influxdb
 try:
     import thread
 except ImportError:
@@ -14,7 +15,10 @@ from lora.crypto import loramac_decrypt
 # from datetime import datetime
 # current_datetime = datetime.now()
 # print(current_datetime)
+
 TOKEN = ""
+client = influxdb.InfluxDBClient(database="stats", host="192.168.0.123")
+
 def selectCMD (message):
     msg = json.loads(message)
     cmd = msg["cmd"]
@@ -57,12 +61,12 @@ def procDataResp(data):
 #payload = MyData['data']
     print("------------------------------------------------")
     #print(data["data_list"][0]["data"].encode())
-    with open('data.txt', 'a') as f:
-        json.dump(data, f, ensure_ascii=False)
+    #with open('data.txt', 'a') as f:
+    #    json.dump(data, f, ensure_ascii=False)
     global dataPyLoad
     dataPyLoad = data["data_list"][0]["data"]
-    with open('data.txt', 'a') as f:
-        json.dump(dataPyLoad, f, ensure_ascii=False)
+    #with open('data.txt', 'a') as f:
+    #    json.dump(dataPyLoad, f, ensure_ascii=False)
     #print(data["data_list"][0]["data"].encode('utf-16'))
     print(dataPyLoad)
     
@@ -126,6 +130,26 @@ def procDataResp(data):
 
         CRC16 = DATA[64:68]
         print(CRC16)
+
+        point = [
+            {
+                "measurement": "traffic",
+                "tags": {"counter": NumSch, "room": 0, "current_traffic_plan": int(NumTarif)},
+                "time": datetime(int("20" + YEAR), int(MON), int(DAY), int(HOUR), int(MIN), int(SEC)) - timedelta(hours=3),
+                "fields": {
+                    "total": SUMT / 1000.0,
+                    "traffic_plan_1": TARIF1 / 1000.0,
+                    "traffic_plan_2": TARIF2 / 1000.0,
+                    "traffic_plan_3": TARIF3 / 1000.0,
+                    "traffic_plan_4": TARIF4 / 1000.0,
+                }
+            }
+        ]
+
+        try:
+            client.write_points(point, database="stats")
+        except Exception as err:
+            print("Exception occurred while trying to send the data", err)
         
         # DataT = str(current_datetime)
         # Number = str(NumSch)
@@ -184,6 +208,25 @@ def procDataResp(data):
         print("Мощность в Вт. Фаза B ", MFB / 1000)
         MFC = int(DATA[62:70], 16)
         print("Мощность в Вт. Фаза C ", MFC / 1000)
+
+        point = [
+            {
+                "measurement": "power",
+                "tags": {"counter": NumSch, "room": 0},
+                "time": datetime(int("20" + YEAR), int(MON), int(DAY), int(HOUR), int(MIN), int(SEC)) - timedelta(hours=3),
+                "fields": {
+                    "total": MSUM / 1000.0,
+                    "phase_a": MFA / 1000.0,
+                    "phase_b": MFB / 1000.0,
+                    "phase_c": MFC / 1000.0,
+                }
+            }
+        ]
+
+        try:
+            client.write_points(point, database="stats")
+        except Exception as err:
+            print("Exception occurred while trying to send the data", err)
 
     if ((COM == 1) & (ID == 16)):
     # Чтение информации о счетчике. Короткий вариант
@@ -324,7 +367,7 @@ def on_open(ws):
                 
                 i+=1
             
-            time.sleep(1800.0 - ((time.time() - starttime) % 1800.0))
+            time.sleep(5)
         
         time.sleep(1)
         ws.close()
