@@ -343,7 +343,7 @@ def on_close(ws, close_status_code, close_msg):
 def on_open(ws):
     def run(*args):
         devInfo = {}
-        devEui = ['70B3D58FF0038598','70B3D58FF1015023','70B3D58FF1014756','70B3D58FF101497F','70B3D58FF1014704','70B3D58FF101470F','70B3D58FF1014754','70B3D58FF10146FD']    
+        devEui = ['70B3D58FF0038598','70B3D58FF1015023','70B3D58FF1014756','70B3D58FF101497F','70B3D58FF1014704','70B3D58FF101470F','70B3D58FF1014754','70B3D58FF10146FD', '70B3D58FF1015022', '70B3D58FF101495C', '70B3D58FF101475A']    
         getAuth = json.dumps({'cmd': 'auth_req', 'login': 'root', 'password': '123'})
         ws.send(getAuth)
             
@@ -376,7 +376,7 @@ def on_open(ws):
     thread.start_new_thread(run, ())
 
 if __name__ == "__main__":
-    websocket.enableTrace(True)
+    websocket.enableTrace(not True)
 
     ws = websocket.WebSocketApp("ws://192.168.0.183:8002",
                                 on_open=on_open,
