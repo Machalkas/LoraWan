@@ -222,7 +222,6 @@ def procDataResp(data):
                 }
             }
         ]
-
         try:
             client.write_points(point, database="stats")
         except Exception as err:
@@ -334,7 +333,7 @@ def on_message(ws, message):
 
 
 def on_error(ws, error):
-    print(error)
+    print("ws error:",error)
 
 
 def on_close(ws, close_status_code, close_msg):
@@ -343,7 +342,7 @@ def on_close(ws, close_status_code, close_msg):
 def on_open(ws):
     def run(*args):
         devInfo = {}
-        devEui = ['70B3D58FF0038598','70B3D58FF1015023','70B3D58FF1014756','70B3D58FF101497F','70B3D58FF1014704','70B3D58FF101470F','70B3D58FF1014754','70B3D58FF10146FD', '70B3D58FF1015022', '70B3D58FF101495C', '70B3D58FF101475A']    
+        devEui = ['70B3D58FF0038598','70B3D58FF1015023','70B3D58FF1014756','70B3D58FF101497F','70B3D58FF1014704','70B3D58FF101470F','70B3D58FF1014754','70B3D58FF10146FD']     
         getAuth = json.dumps({'cmd': 'auth_req', 'login': 'root', 'password': '123'})
         ws.send(getAuth)
             
@@ -357,15 +356,14 @@ def on_open(ws):
         starttime=time.time()
         while True:
             print("Чтение данных")
-            i=0
-            while i<len(devEui):
-                get_devices_req = json.dumps({'cmd': 'get_devices_req'})
-                ws.send(get_devices_req)
+
+            for dev in devEui:
+                # get_devices_req = json.dumps({'cmd': 'get_devices_req'})
+                # ws.send(get_devices_req)
                 
-                get_data_req = json.dumps({'cmd': 'get_data_req','devEui':devEui[i],'select':{'direction':'UPLINK'}})
+                get_data_req = json.dumps({'cmd': 'get_data_req','devEui':dev,'select':{'direction':'UPLINK'}})
                 ws.send(get_data_req)
                 
-                i+=1
             
             time.sleep(5)
         

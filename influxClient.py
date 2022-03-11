@@ -11,11 +11,11 @@ class Influx:
     
     def run(self):
         t=threading.current_thread()
-        while t.getattr("stop", False):
+        while not getattr(t, "stop", False):
             if not self.queue.empty():
                 # print("write to db")
                 d=self.queue.get()
-                print(d.m)
+                print(f"//////////////////////////////////////////////////////////\n{d.message}\n//////////////////////////////////////////////////////////")
                 # p=influxdb_client.Point(d.measurement).time(d.time)
                 # for t in d.tags:
                 #     p.tag(t[0],t[1])

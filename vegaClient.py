@@ -1,3 +1,4 @@
+import threading
 import websocket, queue, json
 from dataClass import Data
 from time import sleep
@@ -16,16 +17,20 @@ class Vega:
                                         on_error=self.on_error,
                                         on_close=self.on_close)
         self.ws.run_forever()
-    
+    #TODO: create device parser
     def on_open(self, ws):
         def run():
             ws.send(json.dumps({'cmd':'auth_req', 'login':self.login, 'password':self.password}))
-            while True:
-                for i in self.dev:
-                    ws.send(json.dumps({'cmd':'get_devices_req'}))
-                    ws.send(json.dumps({'cmd': 'get_data_req','devEui':i,'select':{'direction':'UPLINK'}}))
-                sleep(self.delay)
-        Thread(target=run).start()
+            ws.send(json.dumps({'cmd':'get_devices_req'}))#return list of dev
+            # ws.send(json.dumps({'cmd': 'get_data_req','devEui':self.dev[1],'select':{'direction':'UPLINK'}}))
+            t=threading.current_thread()
+            # while getattr(t, "stop", False):
+                # for i in self.dev:
+                    # ws.send(json.dumps({'cmd':'get_devices_req'}))
+                    # print("ws send")
+                    # ws.send(json.dumps({'cmd': 'get_data_req','devEui':i,'select':{'direction':'UPLINK'}}))
+                # sleep(self.delay)
+        self.thread=Thread(target=run, daemon=True, name="WsWriterThread").start()
 
     def on_message(self, ws, message):
         self.queue.put(Data(message))
@@ -34,4 +39,5 @@ class Vega:
         pass
 
     def on_close(self, ws, close_status_code, close_msg):
-        pass
+        self.thread.stop=True
+        self.thread.join()
