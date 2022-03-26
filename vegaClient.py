@@ -28,10 +28,10 @@ class Vega:
             while not getattr(t, "stop", False):
                 if self.dev!=[]:
                     sleep(self.delay)
-                    print("📡👉 request data")
+                    print("📡👉📜 request data")
                 for i in self.dev:
                     # print("sending to ",i["id"])
-                    ws.send(json.dumps({'cmd': 'get_data_req','devEui':i["id"]+"11111",'select':{'direction':'UPLINK', 'limit':1}}))
+                    ws.send(json.dumps({'cmd': 'get_data_req','devEui':i["id"],'select':{'direction':'UPLINK', 'limit':1}}))
                 if time()-timer>=self.dev_delay:
                     print("📡👉🔄 update dev list")
                     ws.send(json.dumps({'cmd':'get_devices_req'}))#return list of dev
@@ -45,11 +45,12 @@ class Vega:
                 self.dev=dt.devs
             self.queue.put(dt)
         if dt.action!=dt.CONSOLE or CONSOLE_LOG:
-            print("📡👈\n", dt,"\n")
+            log_emogy={dt.AUTH:"🔑", dt.GET_DEV:"🔄", dt.GET_DATA:"📜"}
+            print(f"📡👈{log_emogy[dt.action]}\n", dt,"\n")#TODO: add logger
             
 
     def on_error(self, ws, error):
-        print("ws error:",error)
+        print("❗📡ws error:",error)
         # pass
 
     def on_close(self, ws, close_status_code, close_msg):

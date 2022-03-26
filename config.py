@@ -6,4 +6,4 @@ VEGA_PASS="router"
 VEGA_LOGIN="router"
 DELAY=30
 DEV_UPDATE_DELAY=60*5
-CONSOLE_LOG=False #if true console message from vega server will be printed
+CONSOLE_LOG=True #if true console message from vega server will be printed
