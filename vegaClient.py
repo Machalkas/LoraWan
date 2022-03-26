@@ -3,6 +3,7 @@ import websocket, queue, json
 from dataClass import Data
 from time import sleep
 from threading import Thread
+from config import CONSOLE_LOG
 
 class Vega:
     def __init__(self, url:str, login:str, password:str, delay:int, queue:queue) -> None:
@@ -23,8 +24,9 @@ class Vega:
             ws.send(json.dumps({'cmd':'get_devices_req'}))#return list of dev
             # ws.send(json.dumps({'cmd': 'get_data_req','devEui':self.dev[1],'select':{'direction':'UPLINK'}}))
             t=threading.current_thread()
-            while getattr(t, "stop", False):
-                for i in self.dev:
+            while not getattr(t, "stop", False):
+                for i in self.dev[:1]:
+                    print("sending to ",i["id"])
                     ws.send(json.dumps({'cmd': 'get_data_req','devEui':i["id"],'select':{'direction':'UPLINK'}}))
                 sleep(self.delay)
         self.thread=Thread(target=run, daemon=True, name="WsWriterThread").start()
@@ -35,10 +37,12 @@ class Vega:
             if dt.action==dt.GET_DEV:
                 self.dev=dt.devs
             self.queue.put(dt)
-        print(dt,"\n")
+        if dt.action!=dt.CONSOLE or CONSOLE_LOG:
+            print(dt,"\n")
 
     def on_error(self, ws, error):
         print("ws error:",error)
+        # pass
 
     def on_close(self, ws, close_status_code, close_msg):
         self.thread.stop=True
