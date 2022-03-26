@@ -14,15 +14,16 @@ class Data:
     GET_DATA=Action("get data")
     CONSOLE=Action("console")
     RX=Action("corresponding device")
+    AUTH=Action("auth response")
     N=Action("unknown action")
-    action=N
-    devs=[]#TODO: отказаться от параметра devs
-    data=[]
-    status=False
-    error=""
 
     def __init__(self, message:str) -> None:
-        self.message=json.loads(message)
+        self.action=self.N
+        self.devs=[]#TODO: отказаться от параметра devs
+        self.data=[]
+        self.status=False
+        self.error=""
+        self.message:dict=json.loads(message)
         self.status=self.message["status"]
         if not self.status:
             self.error=self.message["err_string"]
@@ -32,11 +33,13 @@ class Data:
                 self.devs.append({"id":dev["devEui"], "name":dev["devName"]})
         elif self.message["cmd"]=="get_data_resp":
             self.action=self.GET_DATA
-            for dt in self.message["data_list"]:
-                self.data.append({'dev_id':dt["devEui"], 'data':[i["data"] for i in dt["data_list"]]})
+            self.data.append({'dev_id':self.message["devEui"], 'data':[i["data"] for i in self.message["data_list"]]})
         elif self.message["cmd"]=="rx":
             self.action=self.RX
             self.data.append({'dev_id':self.message["devEui"], 'data':self.message["data"]})   
+        elif self.message["cmd"]=="auth_resp":
+            self.action=self.AUTH
+            self.data.append({"status":self.message["status"], "error":self.message.get("err_string",""), "token":self.message.get("token","")})
         elif self.message["cmd"]=="console":
             self.action=self.CONSOLE
             self.data.append({"mess":self.message["message"], "color":self.message["color"]})

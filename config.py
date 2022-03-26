@@ -4,5 +4,6 @@ DB_TOKEN=""
 VEGA_URL="ws://192.168.0.183:8002"
 VEGA_PASS="router"
 VEGA_LOGIN="router"
-DELAY=10
+DELAY=30
+DEV_UPDATE_DELAY=60*5
 CONSOLE_LOG=False #if true console message from vega server will be printed
