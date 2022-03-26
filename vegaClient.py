@@ -5,7 +5,7 @@ from time import sleep
 from threading import Thread
 
 class Vega:
-    def __init__(self, url:str, login:str, password:str, queue:queue, delay:int=5) -> None:
+    def __init__(self, url:str, login:str, password:str, delay:int, queue:queue) -> None:
         self.queue=queue
         self.login=login
         self.password=password
@@ -33,9 +33,9 @@ class Vega:
         dt = Data(message)
         if dt.action!=dt.N:
             if dt.action==dt.GET_DEV:
-                self.dev=dt.dev_id
-            print(dt)
+                self.dev=dt.devs
             self.queue.put(dt)
+        print(dt,"\n")
 
     def on_error(self, ws, error):
         print("ws error:",error)

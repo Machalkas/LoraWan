@@ -15,7 +15,7 @@ class Influx:
             if not self.queue.empty():
                 # print("write to db")
                 d=self.queue.get()
-                print(f"//////////////////////////////////////////////////////////\n{d.message}\n//////////////////////////////////////////////////////////")
+                # print(f"//////////////////////////////////////////////////////////\n{d.message}\n//////////////////////////////////////////////////////////")
                 # p=influxdb_client.Point(d.measurement).time(d.time)
                 # for t in d.tags:
                 #     p.tag(t[0],t[1])
