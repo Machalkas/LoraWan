@@ -1,6 +1,5 @@
 import json
-from re import A
-from select import select
+from datetime import datetime, timedelta
 
 class Action:
     def __init__(self, action) -> None:
@@ -9,7 +8,6 @@ class Action:
         return self.action
 
 class Data:
-
     GET_DEV=Action("get devices")
     GET_DATA=Action("get data")
     CONSOLE=Action("console")
@@ -53,3 +51,61 @@ class Data:
         if self.action==self.N:
             st=f"cmd:{self.message['cmd']}"
         return f"Action => {self.action}\n{'Data' if self.status else 'Error'}   => {st if self.status else self.error}"
+    
+    def get(self) -> list:
+        if self.data==[] or self.data["data"]==[]:
+            return []
+        result=[]
+        data=self.data["data"]
+        for d in data:
+            com = int(data[4:6],16)
+            id = int(data[6:8],16)
+            day = d[14:16]
+            mon = d[16:18]
+            year = d[18:20]
+            sec = d[8:10]
+            min = d[10:12]
+            hour = d[12:14]
+            cid = int(d[0:8], 16)
+            if com==1 and id==1:
+                traffic = int(d[22:24], 16)
+                total = int(d[24:32], 16)
+                t1 = int(d[32:40], 16)
+                t2 = int(d[40:48], 16)
+                t3 = int(d[48:56], 16)
+                t4 = int(d[56:64], 16)
+                meas={
+                    "measurement": "traffic",
+                    "tags": {"counter": cid, "room": 0, "current_traffic_plan": traffic},
+                    "time": datetime(int("20" + year), int(mon), int(day), int(hour), int(min), int(sec)) - timedelta(hours=3),
+                    "fields": {
+                            "total": total / 1000.0,
+                            "traffic_plan_1": t1 / 1000.0,
+                            "traffic_plan_2": t2 / 1000.0,
+                            "traffic_plan_3": t3 / 1000.0,
+                            "traffic_plan_4": t4 / 1000.0,
+                        }
+                }
+            elif com==1 and id==5:
+                total = int(d[38:46], 16)
+                phase_a = int(d[46:54], 16)
+                phase_b = int(d[54:62], 16)
+                phace_c = int(d[62:70], 16)
+                meas={
+                    "measurement": "power",
+                    "tags": {"counter": cid, "room": 0},
+                    "time": datetime(int("20" + year), int(mon), int(day), int(hour), int(min), int(sec)) - timedelta(hours=3),
+                    "fields": {
+                        "total": total / 1000.0,
+                        "phase_a": phase_a / 1000.0,
+                        "phase_b": phase_b / 1000.0,
+                        "phase_c": phace_c / 1000.0,
+                    }
+                }
+            result.append(meas)
+        return result
+    
+
+
+        [{'dev_id': '70B3D58FF1014704', 'data': ['260001015c953e00024514270322000173190a00d84e08009bca01000000000000000000dea9', 
+'3200010e5c953e003223142703228a134d01b400c100de00001b00003200001f00006c00001800006a00000000000000b80a', '3200010d5c953e00322314270322395717577d58890000f00000970000000900000900000600001a00003100001f00000dad']}]
