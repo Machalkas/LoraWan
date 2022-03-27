@@ -59,14 +59,16 @@ class Data:
         data=self.data[0]["data"]
         for d in data:
             if d=="": continue
-            com = int(d[4:6],16)
-            id = int(d[6:8],16)
-            day = d[14:16]
-            mon = d[16:18]
-            year = d[18:20]
-            sec = d[8:10]
-            min = d[10:12]
-            hour = d[12:14]
+            com = int(d[4:6], 16)
+            id = int(d[6:8], 16)
+            if id == 11: continue #when id 11 different date format
+            d=d[8:]
+            day = int(d[14:16])
+            mon = int(d[16:18])
+            year = int(d[18:20])
+            sec = int(d[8:10])
+            min = int(d[10:12])
+            hour = int(d[12:14])
             cid = int(d[0:8], 16)
             if com==1 and id==1:
                 traffic = int(d[22:24], 16)
@@ -78,7 +80,7 @@ class Data:
                 meas={
                     "measurement": "traffic",
                     "tags": {"counter": cid, "room": 0, "current_traffic_plan": traffic},
-                    # "time": datetime(int("20" + year), int(mon), int(day), int(hour), int(min), int(sec)) - timedelta(hours=3),
+                    "time": datetime(int("20" + str(year)), mon, day, hour, min, sec) - timedelta(hours=3),
                     "fields": {
                             "total": total / 1000.0,
                             "traffic_plan_1": t1 / 1000.0,
@@ -96,7 +98,7 @@ class Data:
                 meas={
                     "measurement": "power",
                     "tags": {"counter": cid, "room": 0},
-                    # "time": datetime(int("20" + year), int(mon), int(day), int(hour), int(min), int(sec)) - timedelta(hours=3),
+                    "time": datetime(int("20" + str(year)), mon, day, hour, min, sec) - timedelta(hours=3),
                     "fields": {
                         "total": total / 1000.0,
                         "phase_a": phase_a / 1000.0,

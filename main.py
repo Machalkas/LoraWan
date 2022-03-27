@@ -18,7 +18,7 @@ if __name__=="__main__":
             ws.start()
         if not db.is_alive():
             print("💾🔴Stop db") 
-            ds=None
+            db=None
             time.sleep(5)
         if not ws.is_alive():
             print("📡🔴Stop vega")

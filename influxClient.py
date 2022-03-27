@@ -20,13 +20,13 @@ class Influx:
         t=threading.current_thread()
         while not getattr(t, "stop", False):
             if not self.queue.empty():
-                d=self.queue.get().get()
-                if d!=[]:
-                    print(f"💾👉📜 Write points ({len(d)})")
-                    try:
+                try:
+                    d=self.queue.get().get()
+                    if d!=[]:
+                        print(f"💾👉📜 Write points ({len(d)})")
                         self.client.write_points(d)
-                    except Exception as ex:
-                        print("❗💾 DB Error:",ex)
+                except ZeroDivisionError as ex:
+                    print("❗💾 DB Error:",ex)
 
 if __name__=="__main__":
     from config import DB_HOST, DB_PORT
