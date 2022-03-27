@@ -47,19 +47,20 @@ class Data:
         if self.devs!=[]:
             st+="devices:"+str([i["id"] for i in self.devs])+"\n"
         if self.data!=[]:
-            st+="data:"+str(self.data)+"\n"
+            st+="data:"+str(self.data)[:100]+"\n"
         if self.action==self.N:
             st=f"cmd:{self.message['cmd']}"
         return f"Action => {self.action}\n{'Data' if self.status else 'Error'}   => {st if self.status else self.error}"
     
     def get(self) -> list:
-        if self.data==[] or self.data["data"]==[]:
+        if self.data==[] or self.data[0].get("data")==None:
             return []
         result=[]
-        data=self.data["data"]
+        data=self.data[0]["data"]
         for d in data:
-            com = int(data[4:6],16)
-            id = int(data[6:8],16)
+            if d=="": continue
+            com = int(d[4:6],16)
+            id = int(d[6:8],16)
             day = d[14:16]
             mon = d[16:18]
             year = d[18:20]
@@ -77,7 +78,7 @@ class Data:
                 meas={
                     "measurement": "traffic",
                     "tags": {"counter": cid, "room": 0, "current_traffic_plan": traffic},
-                    "time": datetime(int("20" + year), int(mon), int(day), int(hour), int(min), int(sec)) - timedelta(hours=3),
+                    # "time": datetime(int("20" + year), int(mon), int(day), int(hour), int(min), int(sec)) - timedelta(hours=3),
                     "fields": {
                             "total": total / 1000.0,
                             "traffic_plan_1": t1 / 1000.0,
@@ -86,6 +87,7 @@ class Data:
                             "traffic_plan_4": t4 / 1000.0,
                         }
                 }
+                result.append(meas)
             elif com==1 and id==5:
                 total = int(d[38:46], 16)
                 phase_a = int(d[46:54], 16)
@@ -94,7 +96,7 @@ class Data:
                 meas={
                     "measurement": "power",
                     "tags": {"counter": cid, "room": 0},
-                    "time": datetime(int("20" + year), int(mon), int(day), int(hour), int(min), int(sec)) - timedelta(hours=3),
+                    # "time": datetime(int("20" + year), int(mon), int(day), int(hour), int(min), int(sec)) - timedelta(hours=3),
                     "fields": {
                         "total": total / 1000.0,
                         "phase_a": phase_a / 1000.0,
@@ -102,7 +104,7 @@ class Data:
                         "phase_c": phace_c / 1000.0,
                     }
                 }
-            result.append(meas)
+                result.append(meas)
         return result
     
 

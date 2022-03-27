@@ -26,12 +26,12 @@ class Vega:
             ws.send(json.dumps({'cmd':'auth_req', 'login':self.login, 'password':self.password}))
             t=threading.current_thread()
             while not getattr(t, "stop", False):
+                for i in self.dev:
+                    # print("sending to ",i["id"])
+                    ws.send(json.dumps({'cmd': 'get_data_req','devEui':i["id"],'select':{'direction':'UPLINK'}}))
                 if self.dev!=[]:
                     sleep(self.delay)
                     print("📡👉📜 request data")
-                for i in self.dev:
-                    # print("sending to ",i["id"])
-                    ws.send(json.dumps({'cmd': 'get_data_req','devEui':i["id"],'select':{'direction':'UPLINK', 'limit':1}}))
                 if time()-timer>=self.dev_delay:
                     print("📡👉🔄 update dev list")
                     ws.send(json.dumps({'cmd':'get_devices_req'}))#return list of dev
