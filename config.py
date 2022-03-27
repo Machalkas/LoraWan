@@ -1,6 +1,6 @@
 DB_NAME="stats"
 DB_HOST="192.168.0.123"
-DB_TOKEN=""
+DB_PORT=8086
 VEGA_URL="ws://192.168.0.183:8002"
 VEGA_PASS="router"
 VEGA_LOGIN="router"

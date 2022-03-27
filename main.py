@@ -10,7 +10,7 @@ if __name__=="__main__":
     while True:
         if db==None:
             print("💾🟢Start db")
-            db = Thread(target=Influx, args=(c.DB_NAME, c.DB_HOST, c.DB_TOKEN, queue), daemon=True,  name="InfluxThread")
+            db = Thread(target=Influx, args=(c.DB_NAME, c.DB_HOST, c.DB_PORT, queue), daemon=True,  name="InfluxThread")
             db.start()      
         if ws==None:
             print("📡🟢Start vega")
