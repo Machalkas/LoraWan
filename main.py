@@ -5,14 +5,16 @@ import config as c
 from influxClient import Influx
 from vegaClient import Vega
 
+
 if __name__ == "__main__":
-    queue = queue.Queue()
-    db, ws = None, None
+    que = queue.Queue()
+    log_queue = queue.Queue()
+    db, ws, logger = None, None, None
     while True:
         if db is None:
             print("💾🟢Start db")
             db = Thread(target=Influx,
-                        args=(c.DB_NAME, c.DB_HOST, c.DB_PORT, queue),
+                        args=(c.DB_NAME, c.DB_HOST, c.DB_PORT, que),
                         daemon=True,
                         name="InfluxThread")
             db.start()
@@ -24,7 +26,7 @@ if __name__ == "__main__":
                               c.VEGA_PASS,
                               c.DELAY,
                               c.DEV_UPDATE_DELAY,
-                              queue),
+                              que),
                         daemon=True,
                         name="VegaThread")
             ws.start()
