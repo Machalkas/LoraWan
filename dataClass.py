@@ -69,7 +69,8 @@ class Data:
             sec = int(d[8:10])
             min = int(d[10:12])
             hour = int(d[12:14])
-            cid = int(d[0:8], 16)
+            cid = int(d[0:6], 16)
+            print("cid",cid)
             if com==1 and id==1:
                 traffic = int(d[22:24], 16)
                 total = int(d[24:32], 16)
