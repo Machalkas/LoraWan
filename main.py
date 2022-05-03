@@ -14,7 +14,7 @@ if __name__ == "__main__":
         if db is None:
             print("💾🟢Start db")
             db = Thread(target=Influx,
-                        args=(c.DB_NAME, c.DB_HOST, c.DB_PORT, que),
+                        args=(c.DB_NAME, c.DB_HOST, c.DB_PORT, que, log_queue),
                         daemon=True,
                         name="InfluxThread")
             db.start()
@@ -26,7 +26,8 @@ if __name__ == "__main__":
                               c.VEGA_PASS,
                               c.DELAY,
                               c.DEV_UPDATE_DELAY,
-                              que),
+                              que,
+                              log_queue),
                         daemon=True,
                         name="VegaThread")
             ws.start()

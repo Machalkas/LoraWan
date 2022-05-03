@@ -4,10 +4,10 @@ from influxdb import InfluxDBClient
 
 
 class Influx:
-    def __init__(self, db_name: str, db_host: str, port: str, que: queue,
-                 log_que: queue) -> None:
-        self.queue = que
-        self.log_queue = log_que
+    def __init__(self, db_name: str, db_host: str, port: str, queue: queue,
+                 log_queue: queue) -> None:
+        self.queue = queue
+        self.log_queue = log_queue
         self.db_name = db_name
         try:
             self.client = InfluxDBClient(host=db_host, port=port)

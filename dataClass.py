@@ -34,8 +34,8 @@ class Data:
                 self.devs.append({"id": dev["devEui"], "name": dev["devName"]})
         elif self.message["cmd"] == "get_data_resp":
             self.action = self.GET_DATA
-            self.data.append({'dev_id': self.message["devEui"], 'data': [
-                             i["data"] for i in self.message["data_list"]]})
+            self.data.append({'dev_id': self.message["devEui"],
+                              'data': [i["data"] for i in self.message["data_list"]]})
         elif self.message["cmd"] == "rx":
             self.action = self.RX
             self.data.append(
@@ -60,8 +60,7 @@ class Data:
             st += "data:"+str(self.data)[:100]+"\n"
         if self.action == self.N:
             st = f"cmd:{self.message['cmd']}"
-        return f"Action => {self.action}\n{'Data' if self.status else 'Error'}\
-                => {st if self.status else self.error}"
+        return f"Action => {self.action}\n{'Data' if self.status else 'Error'} => {st if self.status else self.error}"
 
     def get(self) -> list:
         if self.data == [] or self.data[0].get("data") is None:
@@ -83,8 +82,8 @@ class Data:
             min = int(d[10:12])
             hour = int(d[12:14])
             cid = int(d[0:6], 16)
-            print("cid",cid)
-            if com==1 and id==1:
+            print("cid", cid)
+            if com == 1 and id == 1:
                 traffic = int(d[22:24], 16)
                 total = int(d[24:32], 16)
                 t1 = int(d[32:40], 16)
@@ -114,7 +113,7 @@ class Data:
                 total = int(d[38:46], 16)
                 phase_a = int(d[46:54], 16)
                 phase_b = int(d[54:62], 16)
-                phace_c = int(d[62:70], 16)
+                phase_c = int(d[62:70], 16)
                 meas = {
                     "measurement": "power",
                     "tags": {"counter": cid, "room": 0},
@@ -128,7 +127,7 @@ class Data:
                         "total": total / 1000.0,
                         "phase_a": phase_a / 1000.0,
                         "phase_b": phase_b / 1000.0,
-                        "phase_c": phace_c / 1000.0,
+                        "phase_c": phase_c / 1000.0,
                     }
                 }
                 result.append(meas)
