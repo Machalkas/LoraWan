@@ -10,8 +10,9 @@ from config import CONSOLE_LOG
 
 class Vega:
     def __init__(self, url: str, login: str, password: str, delay: int,
-                 dev_delay: int, queue: queue) -> None:
+                 dev_delay: int, queue: queue, log_queue: queue) -> None:
         self.queue = queue
+        self.log_queue = log_queue
         self.login = login
         self.password = password
         self.delay = delay

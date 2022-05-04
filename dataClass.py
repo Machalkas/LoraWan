@@ -94,15 +94,15 @@ class Data:
 
             if id == 11:
                 continue  # when id 11 different date format
-            sec = data_part[4]
-            min = data_part[5]
-            hour = data_part[6]
-            day = data_part[7]
-            mon = data_part[8]
-            year = data_part[9]
+            sec = int(data_part[4])
+            min = int(data_part[5])
+            hour = int(data_part[6])
+            day = int(data_part[7])
+            mon = int(data_part[8])
+            year = int(data_part[9])
 
             counter_factory_id = int(''.join(data_part[3::-1]), 16)
-            print("cid", counter_factory_id)
+            # print("cid", counter_factory_id)
             if com == 1 and id == 1:
                 traffic = int(data_string[22:24], 16)
                 total = int(data_string[24:32], 16)
