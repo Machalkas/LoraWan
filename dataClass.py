@@ -63,36 +63,56 @@ class Data:
         return f"Action => {self.action}\n{'Data' if self.status else 'Error'} => {st if self.status else self.error}"
 
     def get(self) -> list:
+        """
+        decode string to list of bytes
+        * 1 byte - N (number of all bytes in message, including N)
+        * 2 byte - FrameId
+        * 3 byte - com (command type)
+        * 4 byte - id (command id)
+       \n\n com can be :
+        * 0x01 - read
+        * 0x03 - write
+        * 0x0A - exchange error
+        * 0xB - submit write command
+        """
+
         if self.data == [] or self.data[0].get("data") is None:
             return []
         result = []
-        data = self.data[0]["data"]
-        for d in data:
-            if d == "":
+        data_list = self.data[0]["data"]
+        for data_string in data_list:
+            if data_string == "":
                 continue
-            com = int(d[4:6], 16)
-            id = int(d[6:8], 16)
+            byte_data = [data_string[i:i+2] for i in range(0, len(data_string)-2, 2)]
+            command_part = [int(i, 16) for i in byte_data[:4]]
+            data_part = byte_data[4:]
+
+            N = command_part[0]
+            frame_id = command_part[1]
+            com = command_part[2]
+            id = command_part[3]
+
             if id == 11:
                 continue  # when id 11 different date format
-            d = d[8:]
-            day = int(d[14:16])
-            mon = int(d[16:18])
-            year = int(d[18:20])
-            sec = int(d[8:10])
-            min = int(d[10:12])
-            hour = int(d[12:14])
-            cid = int(d[0:6], 16)
-            print("cid", cid)
+            sec = data_part[4]
+            min = data_part[5]
+            hour = data_part[6]
+            day = data_part[7]
+            mon = data_part[8]
+            year = data_part[9]
+
+            counter_factory_id = int(''.join(data_part[3::-1]), 16)
+            print("cid", counter_factory_id)
             if com == 1 and id == 1:
-                traffic = int(d[22:24], 16)
-                total = int(d[24:32], 16)
-                t1 = int(d[32:40], 16)
-                t2 = int(d[40:48], 16)
-                t3 = int(d[48:56], 16)
-                t4 = int(d[56:64], 16)
+                traffic = int(data_string[22:24], 16)
+                total = int(data_string[24:32], 16)
+                t1 = int(data_string[32:40], 16)
+                t2 = int(data_string[40:48], 16)
+                t3 = int(data_string[48:56], 16)
+                t4 = int(data_string[56:64], 16)
                 meas = {
                     "measurement": "traffic",
-                    "tags": {"counter": cid, "room": 0,
+                    "tags": {"counter": counter_factory_id, "room": 0,
                              "current_traffic_plan": traffic},
                     "time": datetime(int("20" + str(year)),
                                      mon,
@@ -110,19 +130,19 @@ class Data:
                 }
                 result.append(meas)
             elif com == 1 and id == 5:
-                total = int(d[38:46], 16)
-                phase_a = int(d[46:54], 16)
-                phase_b = int(d[54:62], 16)
-                phase_c = int(d[62:70], 16)
+                total = int(data_string[38:46], 16)
+                phase_a = int(data_string[46:54], 16)
+                phase_b = int(data_string[54:62], 16)
+                phase_c = int(data_string[62:70], 16)
                 meas = {
                     "measurement": "power",
-                    "tags": {"counter": cid, "room": 0},
+                    "tags": {"counter": counter_factory_id, "room": 0},
                     "time": datetime(int("20" + str(year)),
-                                     mon,
-                                     day,
-                                     hour,
-                                     min,
-                                     sec) - timedelta(hours=3),
+                                     int(mon),
+                                     int(day),
+                                     int(hour),
+                                     int(min),
+                                     int(sec)) - timedelta(hours=3),
                     "fields": {
                         "total": total / 1000.0,
                         "phase_a": phase_a / 1000.0,
@@ -132,3 +152,14 @@ class Data:
                 }
                 result.append(meas)
         return result
+
+if __name__ == "__main__":
+    data_list = [{"data": "310001055f953e00093517030522020c13400807022081c006d1a0f7dd800046170000500500007a0a00007c070000c6aa"}]
+    raw_data = {
+        "cmd": "get_data_resp",
+        "devEui": "1",
+        "data_list": data_list,
+        "status": True
+    }
+    raw_data = json.dumps(raw_data)
+    print(Data(raw_data).get())
