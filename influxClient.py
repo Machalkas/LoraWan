@@ -10,11 +10,11 @@ class Influx:
         self.log_queue = log_queue
         self.db_name = db_name
         try:
-            self.client = InfluxDBClient(host=db_host, port=port)
+            self.influx_client = InfluxDBClient(host=db_host, port=port)
             print("💾👉🆕 create database", db_name)
-            self.client.create_database(db_name)
+            self.influx_client.create_database(db_name)
             print("💾👉select database", db_name)
-            self.client.switch_database(db_name)
+            self.influx_client.switch_database(db_name)
         except Exception as ex:
             print("❗💾 DB Error:", ex)
         self.run()
@@ -27,7 +27,12 @@ class Influx:
                     data = self.queue.get().get()
                     if data != []:
                         print(f"💾👉📜 Write points ({len(data)})")
-                        self.client.write_points(data)
+                        self.influx_client.write_points(data)
+                        self.influx_client.delete_series(tags=[{"counter": i["tags"]["counter"]} for i in data])
+                        self.influx_client.write_points([{
+                            "measurements": "devices",
+                            "counter": i["tags"]["counter"]
+                        } for i in data])
                 except Exception as ex:
                     print("❗💾 DB Error:", ex)
 
