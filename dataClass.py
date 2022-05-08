@@ -10,7 +10,7 @@ class Action:
         return self.action
 
 
-class Data:
+class CounterData:
     GET_DEV = Action("get devices")
     GET_DATA = Action("get data")
     CONSOLE = Action("console")
@@ -162,4 +162,4 @@ if __name__ == "__main__":
         "status": True
     }
     raw_data = json.dumps(raw_data)
-    print(Data(raw_data).get())
+    print(CounterData(raw_data).get())

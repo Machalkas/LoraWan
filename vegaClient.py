@@ -2,7 +2,7 @@ import threading
 import websocket
 import queue
 import json
-from dataClass import Data
+from dataClass import CounterData
 from time import sleep, time
 from threading import Thread
 from config import CONSOLE_LOG
@@ -27,32 +27,35 @@ class Vega:
 
     def on_open(self, ws):
         def run():
-            timer = 0
-            print("📡👉🔑 auth request")
-            ws.send(json.dumps(
-                {'cmd': 'auth_req',
-                 'login': self.login,
-                 'password': self.password}))
-            t = threading.current_thread()
-            while not getattr(t, "stop", False):
-                for i in self.dev:
-                    # print("sending to ",i["id"])
-                    ws.send(json.dumps(
-                        {'cmd': 'get_data_req', 'devEui': i["id"],
-                         'select': {'direction': 'UPLINK'}}))
-                if self.dev != []:
-                    sleep(self.delay)
-                    print("📡👉📜 request data")
-                if time()-timer >= self.dev_delay:
-                    print("📡👉🔄 update dev list")
-                    # return list of dev
-                    ws.send(json.dumps({'cmd': 'get_devices_req'}))
-                    timer = time()
+            try:
+                timer = 0
+                print("📡👉🔑 auth request")
+                ws.send(json.dumps(
+                    {'cmd': 'auth_req',
+                    'login': self.login,
+                    'password': self.password}))
+                t = threading.current_thread()
+                while not getattr(t, "stop", False):
+                    for i in self.dev:
+                        # print("sending to ",i["id"])
+                        ws.send(json.dumps(
+                            {'cmd': 'get_data_req', 'devEui': i["id"],
+                            'select': {'direction': 'UPLINK'}}))
+                    if self.dev != []:
+                        sleep(self.delay)
+                        print("📡👉📜 request data")
+                    if time()-timer >= self.dev_delay:
+                        print("📡👉🔄 update dev list")
+                        # return list of dev
+                        ws.send(json.dumps({'cmd': 'get_devices_req'}))
+                        timer = time()
+            except Exception as ex:
+                print("📡❗ Vega error:", ex)
         self.thread = Thread(target=run, daemon=True,
                              name="WsWriterThread").start()
 
     def on_message(self, ws, message):
-        dt = Data(message)
+        dt = CounterData(message)
         if dt.action != dt.N:
             if dt.action == dt.GET_DEV:
                 self.dev = dt.devs

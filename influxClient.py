@@ -28,7 +28,7 @@ class Influx:
                     if d != []:
                         print(f"💾👉📜 Write points ({len(d)})")
                         self.client.write_points(d)
-                except ZeroDivisionError as ex:
+                except Exception as ex:
                     print("❗💾 DB Error:", ex)
 
 
