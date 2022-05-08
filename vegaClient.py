@@ -62,7 +62,7 @@ class Vega:
             self.queue.put(dt)
         if dt.action != dt.CONSOLE or CONSOLE_LOG:
             log_emoji = {dt.AUTH: "🔑", dt.GET_DEV: "🔄", dt.GET_DATA: "📜"}
-            print(f"📡👈{log_emoji[dt.action]}")  # TODO: add logger
+            print(f"📡👈{log_emoji[dt.action]} | {dt.action}")  # TODO: add logger
 
     def on_error(self, ws, error):
         print("❗📡ws error:", error)
