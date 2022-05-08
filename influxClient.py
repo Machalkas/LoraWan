@@ -24,15 +24,11 @@ class Influx:
         while not getattr(influx_thread, "stop", False):
             if not self.queue.empty():
                 try:
-                    data = self.queue.get().get()
+                    raw_data = self.queue.get()
+                    data = raw_data.get()
                     if data != []:
                         print(f"💾👉📜 Write points ({len(data)})")
                         self.influx_client.write_points(data)
-                        self.influx_client.delete_series(tags=[{"counter": i["tags"]["counter"]} for i in data])
-                        self.influx_client.write_points([{
-                            "measurements": "devices",
-                            "counter": i["tags"]["counter"]
-                        } for i in data])
                 except Exception as ex:
                     print("❗💾 DB Error:", ex)
 
