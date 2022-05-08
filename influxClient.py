@@ -33,7 +33,7 @@ class Influx:
                         self.influx_client.write_points(data)
                     
                     self.write_history(raw_data)
-                except Exception as ex:
+                except ZeroDivisionError as ex:
                     print("❗💾 DB Error:", ex)
 
     def write_history(self, counter_data: CounterData):
@@ -44,10 +44,10 @@ class Influx:
             "fields": {"raw_data": str(counter_data)}
         }
         if decoded_history_data != []:
-            counter_serial_number = decoded_history_data["tags"]["counter"]
+            counter_serial_number = decoded_history_data[0]["tags"]["counter"]
             history_data["tags"]["counter"] = counter_serial_number
-            history_data["fields"]["decoded_data"] = decoded_history_data
-        self.influx_client.write_points(history_data)
+            history_data["fields"]["decoded_data"] = f"{decoded_history_data}"
+        self.influx_client.write_points([history_data])
 
 if __name__ == "__main__":
     from config import DB_HOST, DB_PORT
