@@ -55,12 +55,12 @@ class CounterData:
     def __str__(self) -> str:
         st = ""
         if self.devices != []:
-            st += "devices:"+str([i["id"] for i in self.devices])+"\n"
+            st += "devices:"+str([i["id"] for i in self.devices])
         if self.data != []:
-            st += "data:"+str(self.data)[:100]+"\n"
+            st += "data:"+str(self.data)
         if self.action == self.N:
             st = f"cmd:{self.message['cmd']}"
-        return f"Action => {self.action}\n{'Data' if self.status else 'Error'} => {st if self.status else self.error}"
+        return f"Action => {self.action} | {'Data' if self.status else 'Error'} => {st if self.status else self.error}"
 
     def get(self) -> list:
         """
