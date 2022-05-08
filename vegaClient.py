@@ -17,7 +17,7 @@ class Vega:
         self.password = password
         self.delay = delay
         self.dev_delay = dev_delay
-        self.dev = []
+        self.devices = []
         self.ws = websocket.WebSocketApp(url,
                                          on_open=self.on_open,
                                          on_message=self.on_message,
@@ -30,22 +30,22 @@ class Vega:
             try:
                 timer = 0
                 print("📡👉🔑 auth request")
-                ws.send(json.dumps(
-                    {'cmd': 'auth_req',
-                    'login': self.login,
-                    'password': self.password}))
-                t = threading.current_thread()
-                while not getattr(t, "stop", False):
-                    for i in self.dev:
+                ws.send(json.dumps({
+                     'cmd': 'auth_req',
+                     'login': self.login,
+                     'password': self.password}))
+                vega_thread = threading.current_thread()
+                while not getattr(vega_thread, "stop", False):
+                    for device in self.devices:
                         # print("sending to ",i["id"])
                         ws.send(json.dumps(
-                            {'cmd': 'get_data_req', 'devEui': i["id"],
-                            'select': {'direction': 'UPLINK'}}))
-                    if self.dev != []:
+                            {'cmd': 'get_data_req', 'devEui': device["id"],
+                             'select': {'direction': 'UPLINK'}}))
+                    if self.devices != []:
                         sleep(self.delay)
                         print("📡👉📜 request data")
                     if time()-timer >= self.dev_delay:
-                        print("📡👉🔄 update dev list")
+                        print("📡👉🔄 update device list")
                         # return list of dev
                         ws.send(json.dumps({'cmd': 'get_devices_req'}))
                         timer = time()
@@ -58,7 +58,7 @@ class Vega:
         dt = CounterData(message)
         if dt.action != dt.N:
             if dt.action == dt.GET_DEV:
-                self.dev = dt.devs
+                self.devices = dt.devices
             self.queue.put(dt)
         if dt.action != dt.CONSOLE or CONSOLE_LOG:
             log_emoji = {dt.AUTH: "🔑", dt.GET_DEV: "🔄", dt.GET_DATA: "📜"}

@@ -20,7 +20,7 @@ class CounterData:
 
     def __init__(self, message: str) -> None:
         self.action = self.N
-        self.devs = []  # TODO: отказаться от параметра devs
+        self.devices = []  # TODO: отказаться от параметра devs
         self.data = []
         self.status = False
         self.error = ""
@@ -31,7 +31,7 @@ class CounterData:
         if self.message["cmd"] == 'get_devices_resp':
             self.action = self.GET_DEV
             for dev in self.message["devices_list"]:
-                self.devs.append({"id": dev["devEui"], "name": dev["devName"]})
+                self.devices.append({"id": dev["devEui"], "name": dev["devName"]})
         elif self.message["cmd"] == "get_data_resp":
             self.action = self.GET_DATA
             self.data.append({'dev_id': self.message["devEui"],
@@ -54,8 +54,8 @@ class CounterData:
 
     def __str__(self) -> str:
         st = ""
-        if self.devs != []:
-            st += "devices:"+str([i["id"] for i in self.devs])+"\n"
+        if self.devices != []:
+            st += "devices:"+str([i["id"] for i in self.devices])+"\n"
         if self.data != []:
             st += "data:"+str(self.data)[:100]+"\n"
         if self.action == self.N:

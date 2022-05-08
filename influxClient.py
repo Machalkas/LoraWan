@@ -20,14 +20,14 @@ class Influx:
         self.run()
 
     def run(self):
-        t = threading.current_thread()
-        while not getattr(t, "stop", False):
+        influx_thread = threading.current_thread()
+        while not getattr(influx_thread, "stop", False):
             if not self.queue.empty():
                 try:
-                    d = self.queue.get().get()
-                    if d != []:
-                        print(f"💾👉📜 Write points ({len(d)})")
-                        self.client.write_points(d)
+                    data = self.queue.get().get()
+                    if data != []:
+                        print(f"💾👉📜 Write points ({len(data)})")
+                        self.client.write_points(data)
                 except Exception as ex:
                     print("❗💾 DB Error:", ex)
 
