@@ -56,7 +56,8 @@ class Influx:
         mysql_connection = pymysql.connect(host=DB_HOST, user='pyvega', password='qwedsa123', database='vega')
         with mysql_connection:
             db_cursor = mysql_connection.cursor()
-            db_cursor.execute(f"TRUNCATE TABLE counters; insert into counters (dev_id, dev_name) values {counters_string};")
+            db_cursor.execute("TRUNCATE TABLE counters")
+            db_cursor.execute(f"insert into counters (dev_id, dev_name) values {counters_string}")
             mysql_connection.commit()
 
     def write_history(self, counter_data: CounterData):
