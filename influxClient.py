@@ -51,12 +51,12 @@ class Influx:
         for counter in counters:
             counters_string += f"('{counter.get('id')}', '{counter.get('name')}'),"
         counters_string = counters_string[:-1]
-        counters_string +=";"
+        counters_string += ";"
 
         mysql_connection = pymysql.connect(host=DB_HOST, user='pyvega', password='qwedsa123', database='vega')
         with mysql_connection:
             db_cursor = mysql_connection.cursor()
-            db_cursor.execute(f"insert into counters (dev_id, dev_name) values {counters_string}")
+            db_cursor.execute(f"TRUNCATE TABLE counters; insert into counters (dev_id, dev_name) values {counters_string};")
             mysql_connection.commit()
 
     def write_history(self, counter_data: CounterData):
