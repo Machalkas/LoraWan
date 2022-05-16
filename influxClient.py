@@ -1,8 +1,10 @@
 import queue
 import threading
 from influxdb import InfluxDBClient
-
+import pymysql
 from dataClass import CounterData
+
+from config import DB_HOST
 
 
 class Influx:
@@ -27,6 +29,10 @@ class Influx:
             if not self.queue.empty():
                 try:
                     raw_data = self.queue.get()
+                    if raw_data.action is CounterData.GET_DEV:
+                        print("💾👉🔄 Write devices")
+                        self.write_devices(raw_data)
+
                     data = raw_data.get()
                     if data != []:
                         print(f"💾👉📜 Write points ({len(data)})")
@@ -35,6 +41,23 @@ class Influx:
                     self.write_history(raw_data)
                 except ZeroDivisionError as ex:
                     print("❗💾 DB Error:", ex)
+
+    def write_devices(self, counter_data: CounterData) -> None:
+        if counter_data.devices is None:
+            return
+
+        counters = counter_data.devices
+        counters_string = ""
+        for counter in counters:
+            counters_string += f"('{counter.get('id')}', '{counter.get('name')}'),"
+        counters_string = counters_string[:-1]
+        counters_string +=";"
+
+        mysql_connection = pymysql.connect(host=DB_HOST, user='pyvega', password='qwedsa123', database='vega')
+        with mysql_connection:
+            db_cursor = mysql_connection.cursor()
+            db_cursor.execute(f"insert into counters (dev_id, dev_name) values {counters_string}")
+            mysql_connection.commit()
 
     def write_history(self, counter_data: CounterData):
         decoded_history_data = counter_data.get()
