@@ -14,7 +14,7 @@ if __name__ == "__main__":
         if db is None:
             print("💾🟢Start db")
             db = Thread(target=Influx,
-                        args=(c.DB_NAME, c.DB_HOST, c.DB_PORT, que, log_queue),
+                        args=(c.INFLUX_DB_NAME, c.INFLUX_HOST, c.INFLUX_PORT, que, log_queue),
                         daemon=True,
                         name="InfluxThread")
             db.start()

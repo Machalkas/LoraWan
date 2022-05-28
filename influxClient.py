@@ -4,7 +4,7 @@ from influxdb import InfluxDBClient
 import pymysql
 from dataClass import CounterData
 
-from config import DB_HOST
+from config import INFLUX_HOST
 
 
 class Influx:
@@ -53,7 +53,7 @@ class Influx:
         counters_string = counters_string[:-1]
         counters_string += ";"
 
-        mysql_connection = pymysql.connect(host=DB_HOST, user='pyvega', password='qwedsa123', database='vega')
+        mysql_connection = pymysql.connect(host=INFLUX_HOST, user='pyvega', password='qwedsa123', database='vega')
         with mysql_connection:
             db_cursor = mysql_connection.cursor()
             db_cursor.execute("TRUNCATE TABLE counters")
@@ -74,6 +74,6 @@ class Influx:
         self.influx_client.write_points([history_data])
 
 if __name__ == "__main__":
-    from config import DB_HOST, DB_PORT
+    from config import DB_HOST, INFLUX_PORT
     import queue
-    i = Influx("vega", DB_HOST, DB_PORT, queue.Queue())
+    i = Influx("vega", INFLUX_HOST, INFLUX_PORT, queue.Queue())
