@@ -9,9 +9,6 @@ import threading
 from config import CLICKHOUSE_DB_NAME, CLICKHOUSE_HOST, CLICKHOUSE_PORT, CLICKHOUSE_USER, CLICKHOUSE_PASSWORD
 
 
-clickhouse_client = Client(host=CLICKHOUSE_HOST,
-                           port=CLICKHOUSE_PORT,
-                           user=CLICKHOUSE_USER)
 
 # clickhouse_client.execute(f"CREATE DATABASE IF NOT EXISTS {CLICKHOUSE_DB_NAME}")
 # clickhouse_client.execute(f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.power (`datetime` DateTime, `counter` UInt32, `phase_a` Float64, `phase_b` Float64, `phase_c` Float64, `total` Float64) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(datetime) PRIMARY KEY(datetime)")
@@ -54,6 +51,8 @@ class ClickHouseDriver:
             if not self.global_vars.query_queue.empty():
                 query_dict: dict = self.global_vars.query_queue.get()
                 self.clickhouse_client.execute(query_dict["query"], query_dict["values"], types_check=True)
+                l = len(query_dict["values"])
+                print(f"write to db ({l})")
             await asyncio.sleep(1)
         loop.stop()
 
@@ -63,9 +62,11 @@ class ClickHouseDriver:
             if len(child_self.values_list) >= max_inserts_count:
                 self.global_vars.query_queue.put({"query": child_self.query, "values": child_self.values_list})
                 child_self.values_list = []  # TODO: add blocking values_list
+                print("size trigger")
             if time.time()-timer >= timeout and len(child_self.values_list) >= min_inserts_count:
                 self.global_vars.query_queue.put({"query": child_self.query, "values": child_self.values_list})
                 child_self.values_list = []
+                print("timeout trigger")
                 timer = time.time()
             await asyncio.sleep(1)
 
@@ -103,18 +104,25 @@ class ClickHouseWriter(ClickHouseDriver):
 
 if __name__ == "__main__":
     from datetime import datetime
+    clickhouse_client = Client(host=CLICKHOUSE_HOST,
+                           port=CLICKHOUSE_PORT,
+                           user=CLICKHOUSE_USER)
     test = ClickHouseWriter(clickhouse_client, f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.logs (`datetime` DateTime, `tags` String, `fields` String) ENGINE=StripeLog()")
-    test2 = ClickHouseWriter(clickhouse_client, table=f"{CLICKHOUSE_DB_NAME}.logs", values_names=["datetime", "tags", "fields"])
+    test2 = ClickHouseWriter(clickhouse_client, table=f"{CLICKHOUSE_DB_NAME}.logs", values_names=["datetime", "tags", "fields"], timeout_sec=30)
     
     for i in range(1000):
-        test.add_values({"datetime": datetime.now(), "tags": f"tag_{i}", "fields": f"field_{i}"})
+        test.add_values({"datetime": datetime.now(), "tags": f"tag_1", "fields": f"field_1.{i}"})
     
     for i in range(1000, 3000):
-        test2.add_values({"datetime": datetime.now(), "tags": f"tag_{i}", "fields": f"field_{i}"})
+        test2.add_values({"datetime": datetime.now(), "tags": f"tag_2", "fields": f"field_2.{i}"})
     time.sleep(10)
     
     for i in range(3000, 3010):
-        test.add_values({"datetime": datetime.now(), "tags": f"tag_{i}", "fields": f"field_{i}"})
+        test.add_values({"datetime": datetime.now(), "tags": f"tag_1", "fields": f"field_1.{i}"})
 
+    count = 3010
     while True:
-        pass
+        test.add_values({"datetime": datetime.now(), "tags": f"tag_1", "fields": f"field_1.{count}"})
+        test2.add_values({"datetime": datetime.now(), "tags": f"tag_2", "fields": f"field_2.{count}"})
+        count+=1
+        time.sleep(0.2)
