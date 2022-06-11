@@ -10,7 +10,7 @@ class Action:
         return self.action
 
 
-class CounterData:
+class CounterData:  # TODO: refactor this shit
     GET_DEV = Action("get devices")
     GET_DATA = Action("get data")
     CONSOLE = Action("console")
