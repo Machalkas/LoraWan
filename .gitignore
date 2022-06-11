@@ -3,3 +3,4 @@ leg_env
 .vscode
 data.txt
 __pycache__
+test.py

@@ -1,15 +1,26 @@
-import asyncio
+class D:
+    constant = None
 
-async def time_checker():
-    while True:
-        await asyncio.sleep(1)
-        print("the time has come")
 
-# ioloop = asyncio.get_event_loop()
-# timers = [ioloop.create_task(time_checker())]
+global d
+d = D()
 
-# print("before run")
-# asyncio.run(time_checker())
-# print("after run")
 
-asyncio.create_task(time_checker())
+class C2:
+    def __init__(self, x) -> None:
+        global d
+        self.D = d
+        self.D.constant=x
+
+    def this_constant(self):
+        print(self.D.constant, id(self.D.constant))
+
+
+an_object = C2(1)
+an_object.this_constant()
+
+x = C2(13)
+x.this_constant()
+print(id(x.D.constant))
+x.D.constant = 12
+an_object.this_constant()
