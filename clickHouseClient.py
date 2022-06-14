@@ -10,12 +10,6 @@ from config import CLICKHOUSE_DB_NAME, CLICKHOUSE_HOST, CLICKHOUSE_PORT, CLICKHO
 
 
 
-# clickhouse_client.execute(f"CREATE DATABASE IF NOT EXISTS {CLICKHOUSE_DB_NAME}")
-# clickhouse_client.execute(f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.power (`datetime` DateTime, `counter` UInt32, `phase_a` Float64, `phase_b` Float64, `phase_c` Float64, `total` Float64) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(datetime) PRIMARY KEY(datetime)")
-# clickhouse_client.execute(f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.traffic (`datetime` DateTime, `counter` UInt32, `traffic_plan_1` Float64, `traffic_plan_2` Float64, `traffic_plan_3` Float64, `traffic_plan_4` Float64, `total` Float64) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(datetime) PRIMARY KEY(datetime)")
-# clickhouse_client.execute(f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.logs (`datetime` DateTime, `tags` String, `fields` String) ENGINE=StripeLog()")
-
-
 class ClickHouseStorage:
     async_loop = None
     event_loop_thread = None
@@ -94,7 +88,11 @@ class ClickHouseWriter(ClickHouseDriver):
         self.query = f"INSERT INTO {table} ({', '.join(values_names)}) VALUES"
         self.values_names = values_names
         self.values_list = []
-        super().__init__(clickhouse_client=clickhouse_client, max_inserts_count=max_inserts_count, min_inserts_count=min_inserts_count, timeout_sec=timeout_sec, child_self=self)
+        super().__init__(clickhouse_client=clickhouse_client,
+                         max_inserts_count=max_inserts_count,
+                         min_inserts_count=min_inserts_count,
+                         timeout_sec=timeout_sec,
+                         child_self=self)
 
     def add_values(self, values: dict):
         if type(values) is dict and set([*values]) != set(self.values_names):
