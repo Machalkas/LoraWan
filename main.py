@@ -1,3 +1,4 @@
+from datetime import datetime
 import queue
 import time
 from threading import Thread
@@ -19,9 +20,9 @@ if __name__ == "__main__":
                            user=CLICKHOUSE_USER)
     clickhouse_client.execute(f"CREATE DATABASE IF NOT EXISTS {CLICKHOUSE_DB_NAME}")
 
-    power_writer = ClickHouseWriter(clickhouse_client, f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.power (`datetime` DateTime, `counter` UInt32, `phase_a` Float64, `phase_b` Float64, `phase_c` Float64, `total` Float64) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(datetime) PRIMARY KEY(datetime)")
-    traffic_writer = ClickHouseWriter(clickhouse_client, f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.traffic (`datetime` DateTime, `counter` UInt32, `traffic_plan_1` Float64, `traffic_plan_2` Float64, `traffic_plan_3` Float64, `traffic_plan_4` Float64, `total` Float64) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(datetime) PRIMARY KEY(datetime)")
-    history_writer = ClickHouseWriter(clickhouse_client, f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.history (`datetime` DateTime, `tags` String, `fields` String) ENGINE=StripeLog()", timeout_sec=30, min_inserts_count=10, max_inserts_count=500)
+    power_writer = ClickHouseWriter(clickhouse_client, f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.power (`datetime` DateTime, `counter` UInt32, `phase_a` Nullable(Float64), `phase_b` Nullable(Float64), `phase_c` Nullable(Float64), `total` Nullable(Float64)) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(datetime) PRIMARY KEY(datetime)", max_inserts_count=1000, timeout_sec=30)
+    traffic_writer = ClickHouseWriter(clickhouse_client, f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.traffic (`datetime` DateTime, `counter` UInt32, `traffic_plan_1` Nullable(Float64), `traffic_plan_2` Nullable(Float64), `traffic_plan_3` Nullable(Float64), `traffic_plan_4` Nullable(Float64), `total` Nullable(Float64)) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(datetime) PRIMARY KEY(datetime)", max_inserts_count=1000, timeout_sec=30)
+    history_writer = ClickHouseWriter(clickhouse_client, f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.history (`datetime` DateTime, `tags` String, `fields` String) ENGINE=StripeLog()", timeout_sec=30, min_inserts_count=10, max_inserts_count=2000)
     while True:
         if ws is None:
             print("📡🟢Start vega")
@@ -48,25 +49,26 @@ if __name__ == "__main__":
                     values = {
                         "datetime": counter_data.get("time"),
                         "counter": counter_data.get("tags").get("counter"),
-                        "total": counter_data.get("tags").get("total"),
-                        "phase_a": counter_data.get("tags").get("phase_a"),
-                        "phase_b": counter_data.get("tags").get("phase_b"),
-                        "phase_c": counter_data.get("tags").get("phase_c")
+                        "total": counter_data.get("fields").get("total"),
+                        "phase_a": counter_data.get("fields").get("phase_a"),
+                        "phase_b": counter_data.get("fields").get("phase_b"),
+                        "phase_c": counter_data.get("fields").get("phase_c")
                     }
                     power_writer.add_values(values)
                 if counter_data.get("measurement") == "traffic":
                     values = {
                         "datetime": counter_data.get("time"),
                         "counter": counter_data.get("tags").get("counter"),
-                        "total": counter_data.get("tags").get("total"),
-                        "traffic_plan_1": counter_data.get("tags").get("traffic_plan_1"),
-                        "traffic_plan_2": counter_data.get("tags").get("traffic_plan_2"),
-                        "traffic_plan_3": counter_data.get("tags").get("traffic_plan_3"),
-                        "traffic_plan_4": counter_data.get("tags").get("traffic_plan_4")
+                        "total": counter_data.get("fields").get("total"),
+                        "traffic_plan_1": counter_data.get("fields").get("traffic_plan_1"),
+                        "traffic_plan_2": counter_data.get("fields").get("traffic_plan_2"),
+                        "traffic_plan_3": counter_data.get("fields").get("traffic_plan_3"),
+                        "traffic_plan_4": counter_data.get("fields").get("traffic_plan_4")
                     }
                     traffic_writer.add_values(values)
 
                 history_writer.add_values({
+                    "datetime": datetime.now(),
                     "tags": str(counters_data.action),
                     "fields": str(counters_data)
                 })

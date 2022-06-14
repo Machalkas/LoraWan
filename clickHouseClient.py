@@ -44,7 +44,7 @@ class ClickHouseDriver:
         while True:
             if not self.global_vars.query_queue.empty():
                 query_dict: dict = self.global_vars.query_queue.get()
-                self.clickhouse_client.execute(query_dict["query"], query_dict["values"], types_check=True)
+                self.clickhouse_client.execute(query_dict["query"], query_dict["values"], types_check=True)  # TODO: catch exceptions here
                 l = len(query_dict["values"])
                 print(f"write to db ({l})")
             await asyncio.sleep(1)
