@@ -104,12 +104,12 @@ class CounterData:  # TODO: refactor this shit
             counter_factory_id = int(''.join(data_part[3::-1]), 16)
             # print("cid", counter_factory_id)
             if com == 1 and id == 1:
-                traffic = int(data_string[22:24], 16)
-                total = int(data_string[24:32], 16)
-                t1 = int(data_string[32:40], 16)
-                t2 = int(data_string[40:48], 16)
-                t3 = int(data_string[48:56], 16)
-                t4 = int(data_string[56:64], 16)
+                traffic = int(data_string[22:24][::-1], 16)
+                total = int(data_string[24:32][::-1], 16)
+                t1 = int(data_string[32:40][::-1], 16)
+                t2 = int(data_string[40:48][::-1], 16)
+                t3 = int(data_string[48:56][::-1], 16)
+                t4 = int(data_string[56:64][::-1], 16)
                 meas = {
                     "measurement": "traffic",
                     "tags": {"counter": counter_factory_id, "room": 0,
@@ -130,10 +130,10 @@ class CounterData:  # TODO: refactor this shit
                 }
                 result.append(meas)
             elif com == 1 and id == 5:
-                total = int(data_string[38:46], 16)
-                phase_a = int(data_string[46:54], 16)
-                phase_b = int(data_string[54:62], 16)
-                phase_c = int(data_string[62:70], 16)
+                total = int(data_string[38:46][::-1], 16)
+                phase_a = int(data_string[46:54][::-1], 16)
+                phase_b = int(data_string[54:62][::-1], 16)
+                phase_c = int(data_string[62:70][::-1], 16)
                 meas = {
                     "measurement": "power",
                     "tags": {"counter": counter_factory_id, "room": 0},
@@ -163,3 +163,6 @@ if __name__ == "__main__":
     }
     raw_data = json.dumps(raw_data)
     print(CounterData(raw_data).get())
+    cd = CounterData(raw_data).get()[0]
+    total = cd["fields"].get("phase_a")+cd["fields"].get("phase_b")+cd["fields"].get("phase_c")
+    print(cd["fields"]["total"], total)
