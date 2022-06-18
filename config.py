@@ -16,3 +16,5 @@ VEGA_LOGIN = "router"
 DELAY = 30
 DEV_UPDATE_DELAY = 60*30
 CONSOLE_LOG = True  # if true console message from vega server will be printed
+
+DEBUG = True

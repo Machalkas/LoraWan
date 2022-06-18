@@ -1,4 +1,5 @@
 from datetime import datetime
+from config import DEBUG
 
 class Logger:
     HEADER = '\033[95m'
@@ -28,9 +29,13 @@ class Logger:
     
     def header(self, message: str, style: str = HEADER+BOLD):
         self.log(message.upper(), "", style)
+    
+    def debug(self, message: str, style: str = ""):
+        if DEBUG:
+            self.log(message, "DEBUG", style)
 
     def log(self, message: str, log_type: str, style: str = ""):
-        print(f"{datetime.now()} | {style}{'['+log_type+']' if log_type!='' else ''}"
+        print(f"{datetime.now()} | {style}{'['+log_type+']' if log_type!='' else ''} "
               f"{message if message.isupper() else message.capitalize()}"
               f"{self.ENDC if style!='' else ''}")
 

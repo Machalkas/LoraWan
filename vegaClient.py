@@ -38,7 +38,7 @@ class Vega:
                 while not getattr(vega_thread, "stop", False):
                     if self.devices != []:
                         sleep(self.delay)
-                        logger.info("request saved data from ")
+                        logger.info("request saved data from")
                     if time()-timer >= self.dev_delay:
                         logger.info("request device list")
                         ws.send(json.dumps({'cmd': 'get_devices_req'}))
