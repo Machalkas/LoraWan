@@ -102,56 +102,43 @@ class CounterData:  # TODO: refactor this shit
             year = int(data_part[9])
 
             counter_factory_id = int(''.join(data_part[3::-1]), 16)
-            # print("cid", counter_factory_id)
+
+            measurement = {
+                "measurement": "power",
+                "tags": {"counter": counter_factory_id, "room": 0},
+                "time": datetime(int("20" + str(year)),
+                                 int(mon),
+                                 int(day),
+                                 int(hour),
+                                 int(min),
+                                 int(sec)) - timedelta(hours=3),
+                "fields": None
+            }
+
             if com == 1 and id == 1:
-                traffic = int(data_string[22:24], 16)
-                total = int(data_string[24:32], 16)
-                t1 = int(data_string[32:40], 16)
-                t2 = int(data_string[40:48], 16)
-                t3 = int(data_string[48:56], 16)
-                t4 = int(data_string[56:64], 16)
-                meas = {
-                    "measurement": "traffic",
-                    "tags": {"counter": counter_factory_id, "room": 0,
-                             "current_traffic_plan": traffic},
-                    "time": datetime(int("20" + str(year)),
-                                     mon,
-                                     day,
-                                     hour,
-                                     min,
-                                     sec) - timedelta(hours=3),
-                    "fields": {
-                        "total": total / 1000.0,
-                        "traffic_plan_1": t1 / 1000.0,
-                        "traffic_plan_2": t2 / 1000.0,
-                        "traffic_plan_3": t3 / 1000.0,
-                        "traffic_plan_4": t4 / 1000.0,
-                    }
-                }
-                result.append(meas)
+                measurement["fields"] = self.get_traffic(data_part)
             elif com == 1 and id == 5:
-                total = int(data_string[38:46], 16)
-                phase_a = int(data_string[46:54], 16)
-                phase_b = int(data_string[54:62], 16)
-                phase_c = int(data_string[62:70], 16)
-                meas = {
-                    "measurement": "power",
-                    "tags": {"counter": counter_factory_id, "room": 0},
-                    "time": datetime(int("20" + str(year)),
-                                     int(mon),
-                                     int(day),
-                                     int(hour),
-                                     int(min),
-                                     int(sec)) - timedelta(hours=3),
-                    "fields": {
-                        "total": total / 1000.0,
-                        "phase_a": phase_a / 1000.0,
-                        "phase_b": phase_b / 1000.0,
-                        "phase_c": phase_c / 1000.0,
-                    }
-                }
-                result.append(meas)
+                measurement["fields"] = self.get_power(data_part)
+            
+            if measurement.get("fields"):
+                result.append(measurement)
         return result
+
+    def get_power(self, data_part) -> dict:
+        total = int("".join(data_part[30:26:-1]), 16)
+        phase_a = int("".join(data_part[34:30:-1]), 16)
+        phase_b = int("".join(data_part[38:34:-1]), 16)
+        phase_c = int("".join(data_part[42:38:-1]), 16)
+        return {"total": total, "phase_a": phase_a, "phase_b": phase_b, "phase_c": phase_c}
+
+    def get_traffic(self, data_part) -> dict:
+        traffic = int(data_part[11], 16)
+        total = int("".join(data_part[11:15:-1]), 16)
+        t1 = int("".join(data_part[15:19:-1]), 16)
+        t2 = int("".join(data_part[19:23:-1]), 16)
+        t3 = int("".join(data_part[23:27:-1]), 16)
+        t4 = int("".join(data_part[27:31:-1]), 16)
+        return {"current_traffic": traffic, "total": total, "traffic_plan_1": t1, "traffic_plan_2": t2, "traffic_plan_3": t3, "traffic_plan_4": t4}
 
 if __name__ == "__main__":
     data_list = [{"data": "310001055f953e00093517030522020c13400807022081c006d1a0f7dd800046170000500500007a0a00007c070000c6aa"}]
