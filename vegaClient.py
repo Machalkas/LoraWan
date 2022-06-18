@@ -36,11 +36,6 @@ class Vega:
                      'password': self.password}))
                 vega_thread = threading.current_thread()
                 while not getattr(vega_thread, "stop", False):
-                    for device in self.devices:
-                        # print("sending to ",i["id"])
-                        ws.send(json.dumps(
-                            {'cmd': 'get_data_req', 'devEui': device["id"],
-                             'select': {'direction': 'UPLINK'}}))
                     if self.devices != []:
                         sleep(self.delay)
                         print("📡👉📜 request data")
@@ -51,14 +46,20 @@ class Vega:
                         timer = time()
             except Exception as ex:
                 print("📡❗ Vega error:", ex)
-        self.thread = Thread(target=run, daemon=True,
-                             name="WsWriterThread").start()
+        self.thread = Thread(target=run, daemon=True, name="WsWriterThread").start()
+
+    def get_saved_data_from_devices(self):
+        for device in self.devices:
+            self.ws.send(json.dumps({'cmd': 'get_data_req',
+                                     'devEui': device["id"],
+                                     'select': {'direction': 'UPLINK'}}))
 
     def on_message(self, ws, message):
         dt = CounterData(message)
         if dt.action != dt.N:
             if dt.action == dt.GET_DEV:
                 self.devices = dt.devices
+                self.get_saved_data_from_devices()
             self.queue.put(dt)
         if dt.action != dt.CONSOLE or CONSOLE_LOG:
             log_emoji = {dt.AUTH: "🔑", dt.GET_DEV: "🔄", dt.GET_DATA: "📜"}
