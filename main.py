@@ -2,12 +2,12 @@ import queue
 import time
 from threading import Thread
 import config
-from dataClass import CounterData
+from utils.dataClass import CounterData
 from vegaClient import Vega
 from clickhouse_driver import Client
 from clickHouseClient import ClickHouseWriter
 
-from globals import logger
+from utils import logger
 
 from config import CLICKHOUSE_HOST, CLICKHOUSE_PORT, CLICKHOUSE_USER, CLICKHOUSE_DB_NAME, CLICKHOUSE_PASSWORD
 

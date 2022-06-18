@@ -2,10 +2,10 @@ import queue
 import threading
 from influxdb import InfluxDBClient
 import pymysql
-from dataClass import CounterData
+from utils.dataClass import CounterData
 
 from config import INFLUX_HOST
-from globals import logger
+from utils import logger
 
 
 class Influx:

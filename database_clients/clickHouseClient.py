@@ -4,7 +4,7 @@ import time
 from typing import Optional
 from clickhouse_driver import Client
 import threading
-from globals import logger
+from utils import logger
 
 from config import CLICKHOUSE_DB_NAME, CLICKHOUSE_HOST, CLICKHOUSE_PORT, CLICKHOUSE_USER, CLICKHOUSE_PASSWORD
 

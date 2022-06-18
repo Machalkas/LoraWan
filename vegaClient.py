@@ -2,11 +2,11 @@ import threading
 import websocket
 import queue
 import json
-from dataClass import CounterData
+from utils.dataClass import CounterData
 from time import sleep, time
 from threading import Thread
 from config import CONSOLE_LOG
-from globals import logger
+from utils import logger
 
 
 class Vega:
