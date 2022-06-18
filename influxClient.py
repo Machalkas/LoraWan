@@ -5,6 +5,7 @@ import pymysql
 from dataClass import CounterData
 
 from config import INFLUX_HOST
+from globals import logger
 
 
 class Influx:
@@ -15,12 +16,11 @@ class Influx:
         self.db_name = db_name
         try:
             self.influx_client = InfluxDBClient(host=db_host, port=port)
-            print("💾👉🆕 create database", db_name)
+            logger.info(f"Create influx database: {db_name}")
             self.influx_client.create_database(db_name)
-            print("💾👉select database", db_name)
             self.influx_client.switch_database(db_name)
         except Exception as ex:
-            print("❗💾 DB Error:", ex)
+            logger.error(f"DB Error: {ex}")
         self.run()
 
     def run(self):
@@ -30,17 +30,17 @@ class Influx:
                 try:
                     raw_data = self.queue.get()
                     if raw_data.action is CounterData.GET_DEV:
-                        print("💾👉🔄 Write devices")
+                        logger.important("Write devices to mysql")
                         self.write_devices(raw_data)
 
                     data = raw_data.get()
                     if data != []:
-                        print(f"💾👉📜 Write points ({len(data)})")
+                        logger.info(f"Write points ({len(data)})")
                         self.influx_client.write_points(data)
                     
                     self.write_history(raw_data)
-                except ZeroDivisionError as ex:
-                    print("❗💾 DB Error:", ex)
+                except Exception as ex:
+                    logger.error(f"DB Error: {ex}")
 
     def write_devices(self, counter_data: CounterData) -> None:
         if counter_data.devices is None:

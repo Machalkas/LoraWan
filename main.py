@@ -1,4 +1,3 @@
-from datetime import datetime
 import queue
 import time
 from threading import Thread
@@ -8,6 +7,8 @@ from vegaClient import Vega
 from clickhouse_driver import Client
 from clickHouseClient import ClickHouseWriter
 
+from globals import logger
+
 from config import CLICKHOUSE_HOST, CLICKHOUSE_PORT, CLICKHOUSE_USER, CLICKHOUSE_DB_NAME, CLICKHOUSE_PASSWORD
 
 power_table_query = f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.power (`datetime` DateTime, `counter` UInt32, `phase_a` Nullable(Float64), `phase_b` Nullable(Float64), `phase_c` Nullable(Float64), `total` Nullable(Float64)) ENGINE = MergeTree() PARTITION BY toMonday(datetime) PRIMARY KEY(datetime)"
@@ -15,9 +16,11 @@ traffic_table_query =  f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.traffic
 history_table_query = f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.history (`datetime` DateTime, `tags` String, `fields` String) ENGINE=StripeLog()"
 
 if __name__ == "__main__":
+
+    logger.header("iot vega broker")
+
     vega_queue = queue.Queue()
-    log_queue = queue.Queue()
-    ws, logger = None, None
+    ws = None
     clickhouse_client = Client(host=CLICKHOUSE_HOST,
                            port=CLICKHOUSE_PORT,
                            user=CLICKHOUSE_USER,
@@ -29,20 +32,19 @@ if __name__ == "__main__":
     # history_writer = ClickHouseWriter(clickhouse_client, history_table_query, timeout_sec=30, min_inserts_count=10, max_inserts_count=2000)
     while True:
         if ws is None:
-            print("📡🟢Start vega")
+            logger.success("vega start")
             ws = Thread(target=Vega,
                         args=(config.VEGA_URL,
                               config.VEGA_LOGIN,
                               config.VEGA_PASS,
                               config.DELAY,
                               config.DEV_UPDATE_DELAY,
-                              vega_queue,
-                              log_queue),
+                              vega_queue),
                         daemon=True,
                         name="VegaThread")
             ws.start()
         if not ws.is_alive():
-            print("📡🔴Stop vega")
+            logger.warning("vega stop")
             ws = None
             time.sleep(5)
         
@@ -67,7 +69,8 @@ if __name__ == "__main__":
                         "traffic_plan_1": counter_data.get("fields").get("traffic_plan_1"),
                         "traffic_plan_2": counter_data.get("fields").get("traffic_plan_2"),
                         "traffic_plan_3": counter_data.get("fields").get("traffic_plan_3"),
-                        "traffic_plan_4": counter_data.get("fields").get("traffic_plan_4")
+                        "traffic_plan_4": counter_data.get("fields").get("traffic_plan_4"),
+                        "current_traffic": counter_data.get("fields").get("current_traffic")
                     }
                     traffic_writer.add_values(values)
 

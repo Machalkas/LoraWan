@@ -4,7 +4,7 @@ import time
 from typing import Optional
 from clickhouse_driver import Client
 import threading
-
+from globals import logger
 
 from config import CLICKHOUSE_DB_NAME, CLICKHOUSE_HOST, CLICKHOUSE_PORT, CLICKHOUSE_USER, CLICKHOUSE_PASSWORD
 
@@ -47,9 +47,9 @@ class ClickHouseDriver:
                 try:
                     self.clickhouse_client.execute(query_dict["query"], query_dict["values"], types_check=True)  # TODO: catch exceptions here
                     l = len(query_dict["values"])
-                    print(f"write to db ({l})")
+                    logger.important(f"Write to db ({l})")
                 except Exception as e:
-                    print(f"Error while try too write data do db: {e}")
+                    logger.error(f"Error while try too write data do db: {e}")
             await asyncio.sleep(1)
         loop.stop()
 
@@ -59,11 +59,11 @@ class ClickHouseDriver:
             if len(child_self.values_list) >= max_inserts_count:
                 self.global_vars.query_queue.put({"query": child_self.query, "values": child_self.values_list})
                 child_self.values_list = []  # TODO: add blocking values_list
-                print("size trigger")
+                logger.info("Size trigger fired")
             if time.time()-timer >= timeout and len(child_self.values_list) >= min_inserts_count:
                 self.global_vars.query_queue.put({"query": child_self.query, "values": child_self.values_list})
                 child_self.values_list = []
-                print("timeout trigger")
+                logger.info("Timeout trigger fired")
                 timer = time.time()
             await asyncio.sleep(1)
 

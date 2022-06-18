@@ -6,13 +6,13 @@ from dataClass import CounterData
 from time import sleep, time
 from threading import Thread
 from config import CONSOLE_LOG
+from globals import logger
 
 
 class Vega:
     def __init__(self, url: str, login: str, password: str, delay: int,
-                 dev_delay: int, queue: queue, log_queue: queue) -> None:
+                 dev_delay: int, queue: queue) -> None:
         self.queue = queue
-        self.log_queue = log_queue
         self.login = login
         self.password = password
         self.delay = delay
@@ -29,7 +29,7 @@ class Vega:
         def run():
             try:
                 timer = 0
-                print("📡👉🔑 auth request")
+                logger.info("auth request")
                 ws.send(json.dumps({
                      'cmd': 'auth_req',
                      'login': self.login,
@@ -38,14 +38,13 @@ class Vega:
                 while not getattr(vega_thread, "stop", False):
                     if self.devices != []:
                         sleep(self.delay)
-                        print("📡👉📜 request data")
+                        logger.info("request saved data from ")
                     if time()-timer >= self.dev_delay:
-                        print("📡👉🔄 update device list")
-                        # return list of dev
+                        logger.info("request device list")
                         ws.send(json.dumps({'cmd': 'get_devices_req'}))
                         timer = time()
             except Exception as ex:
-                print("📡❗ Vega error:", ex)
+                logger.error(f"Vega error: {ex}")
         self.thread = Thread(target=run, daemon=True, name="WsWriterThread").start()
 
     def get_saved_data_from_devices(self):
@@ -62,12 +61,10 @@ class Vega:
                 self.get_saved_data_from_devices()
             self.queue.put(dt)
         if dt.action != dt.CONSOLE or CONSOLE_LOG:
-            log_emoji = {dt.AUTH: "🔑", dt.GET_DEV: "🔄", dt.GET_DATA: "📜"}
-            print(f"📡👈{log_emoji[dt.action]} | {dt.action}")  # TODO: add logger
+            logger.info(f"{dt.action}")
 
     def on_error(self, ws, error):
-        print("❗📡ws error:", error)
-        # pass
+        logger.error(f"websocket error: {error}")
 
     def on_close(self, ws, close_status_code, close_msg):
         self.thread.stop = True
