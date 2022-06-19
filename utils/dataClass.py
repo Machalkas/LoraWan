@@ -92,7 +92,7 @@ class CounterData:  # TODO: refactor this shit
             com = command_part[2]
             id = command_part[3]
 
-            logger.debug(f"receive data from vega -> com: {com}, id: {id}")
+            # logger.debug(f"receive data from vega -> com: {com}, id: {id}")
 
             if id == 11:
                 continue  # when id 11 different date format
@@ -102,6 +102,14 @@ class CounterData:  # TODO: refactor this shit
             day = int(data_part[7])
             mon = int(data_part[8])
             year = int(data_part[9])
+
+            dt = datetime(int("20" + str(year)),
+                                 int(mon),
+                                 int(day),
+                                 int(hour),
+                                 int(min),
+                                 int(sec)) - timedelta(hours=3)
+            logger.debug(f"get data with timestamp {dt}")
 
             counter_factory_id = int(''.join(data_part[3::-1]), 16)
 
@@ -122,7 +130,8 @@ class CounterData:  # TODO: refactor this shit
             elif com == 1 and id == 5:
                 measurement["fields"] = self.get_power(data_part)
             elif com == 1 and id == 13:
-                print(len("".join([str(bin(int(i,16)))[2:] for i in data_part[10:14]])), "".join([str(bin(int(i,16)))[2:] for i in data_part[10:14]]))
+                pass
+                # print(len("".join([str(bin(int(i,16)))[2:] for i in data_part[10:14]])), "".join([str(bin(int(i,16)))[2:] for i in data_part[10:14]]))
             if measurement.get("fields"):
                 result.append(measurement)
         return result
