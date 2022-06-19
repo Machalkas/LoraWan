@@ -1,5 +1,5 @@
 import sqlite3
-from utils import logger
+from utils import logger, log_exceptions
 
 db_connection = None
 
@@ -11,13 +11,6 @@ def auto_commit(func):
         return func_result
     return wrapper
 
-def log_exceptions(func):
-    def wrapper(self, *args, **kargs):
-        try:
-            return func(self, *args, **kargs)
-        except Exception as e:
-            logger.error(f"error in '{func.__name__}' function: {e}")
-    return wrapper
 
 class SqliteClient:  # TODO rewrite to mysql client
     def __init__(self, create_table_query: str = None, table_columns: str = None, table_name: str = None, db_path: str = "db.sqlite3") -> None:

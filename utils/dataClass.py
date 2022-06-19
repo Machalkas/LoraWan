@@ -1,6 +1,6 @@
 import json
 from datetime import datetime, timedelta
-
+from utils import logger, log_exceptions
 
 class Action:
     def __init__(self, action) -> None:
@@ -92,6 +92,8 @@ class CounterData:  # TODO: refactor this shit
             com = command_part[2]
             id = command_part[3]
 
+            logger.debug(f"receive data from vega -> com: {com}, id: {id}")
+
             if id == 11:
                 continue  # when id 11 different date format
             sec = int(data_part[4])
@@ -119,11 +121,13 @@ class CounterData:  # TODO: refactor this shit
                 measurement["fields"] = self.get_traffic(data_part)
             elif com == 1 and id == 5:
                 measurement["fields"] = self.get_power(data_part)
-            
+            elif com == 1 and id == 13:
+                print(len("".join([str(bin(int(i,16)))[2:] for i in data_part[10:14]])), "".join([str(bin(int(i,16)))[2:] for i in data_part[10:14]]))
             if measurement.get("fields"):
                 result.append(measurement)
         return result
 
+    @log_exceptions
     def get_power(self, data_part) -> dict:
         total = int("".join(data_part[30:26:-1]), 16)
         phase_a = int("".join(data_part[34:30:-1]), 16)
@@ -131,17 +135,18 @@ class CounterData:  # TODO: refactor this shit
         phase_c = int("".join(data_part[42:38:-1]), 16)
         return {"total": total, "phase_a": phase_a, "phase_b": phase_b, "phase_c": phase_c}
 
+    # @log_exceptions
     def get_traffic(self, data_part) -> dict:
         traffic = int(data_part[11], 16)
-        total = int("".join(data_part[11:15:-1]), 16)
-        t1 = int("".join(data_part[15:19:-1]), 16)
-        t2 = int("".join(data_part[19:23:-1]), 16)
-        t3 = int("".join(data_part[23:27:-1]), 16)
-        t4 = int("".join(data_part[27:31:-1]), 16)
+        total = int("".join(data_part[15:11:-1]), 16)
+        t1 = int("".join(data_part[19:15:-1]), 16)
+        t2 = int("".join(data_part[23:19:-1]), 16)
+        t3 = int("".join(data_part[27:23:-1]), 16)
+        t4 = int("".join(data_part[31:27:-1]), 16)
         return {"current_traffic": traffic, "total": total, "traffic_plan_1": t1, "traffic_plan_2": t2, "traffic_plan_3": t3, "traffic_plan_4": t4}
 
 if __name__ == "__main__":
-    data_list = [{"data": "310001055f953e00093517030522020c13400807022081c006d1a0f7dd800046170000500500007a0a00007c070000c6aa"}]
+    data_list = [{"ack":0,"data":"310001055f953e00544202190622000c13400807022081c006d1a0f7dd8000151f000082040000370a00005c1000002131","dr":"SF12 BW125 4/5","fcnt":423,"freq":864100000,"gatewayId":"00006CC3743EDEBB","port":4,"rssi":-101,"snr":8.1999999999999993,"ts":1655595884096,"type":"CONF_UP"},{"ack":0,"data":"260001015f953e0017250219062200022c6608070317b104294f570200000000000000000108","dr":"SF12 BW125 4/5","fcnt":422,"freq":868900000,"gatewayId":"00006CC3743EDEBB","port":4,"rssi":-72,"snr":10,"ts":1655594826776,"type":"CONF_UP"},{"ack":0,"data":"3200010e5f953e0047530119062288135703dd03e703ca0300470500660a005f0e000c1e002b1d00aa04000000000000f50c","dr":"SF12 BW125 4/5","fcnt":421,"freq":864100000,"gatewayId":"00006CC3743EDEBB","port":4,"rssi":-97,"snr":8.5,"ts":1655594206094,"type":"CONF_UP"},{"ack":0,"data":"3200010d5f953e004753011906222e5f565d585cb91500b12b00553d0000840400490a005e0e00bb0200870100680000d788","dr":"SF12 BW125 4/5","fcnt":419,"freq":864100000,"gatewayId":"00006CC3743EDEBB","port":4,"rssi":-97,"snr":8.5,"ts":1655592937108,"type":"CONF_UP"},{"ack":0,"data":"310001055f953e00484201190622000c13400807022081c006d1a0f7dd8000361d000084040000460a00006c0e00008d8b","dr":"SF12 BW125 4/5","fcnt":418,"freq":868900000,"gatewayId":"00006CC3743EDEBB","port":4,"rssi":-71,"snr":9.1999999999999993,"ts":1655592278095,"type":"CONF_UP"},{"ack":0,"data":"260001015f953e004820011906220002d94808070317b104d63157020000000000000000683d","dr":"SF12 BW125 4/5","fcnt":416,"freq":868900000,"gatewayId":"00006CC3743EDEBB","port":4,"rssi":-71,"snr":9.8000000000000007,"ts":1655590957771,"type":"CONF_UP"}]
     raw_data = {
         "cmd": "get_data_resp",
         "devEui": "1",
