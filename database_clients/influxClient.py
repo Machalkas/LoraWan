@@ -29,7 +29,7 @@ class Influx:
             if not self.queue.empty():
                 try:
                     raw_data = self.queue.get()
-                    if raw_data.action is CounterData.GET_DEV:
+                    if raw_data.action is CounterData.GET_DEVICES:
                         logger.important("Write devices to mysql")
                         self.write_devices(raw_data)
 

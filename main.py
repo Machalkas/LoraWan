@@ -5,11 +5,12 @@ import config
 from utils.dataClass import CounterData
 from vegaClient import Vega
 from clickhouse_driver import Client
-from clickHouseClient import ClickHouseWriter
+from database_clients.clickHouseClient import ClickHouseWriter
+from database_clients.mysqlClient import Counters
 
 from utils import logger
 
-from config import CLICKHOUSE_HOST, CLICKHOUSE_PORT, CLICKHOUSE_USER, CLICKHOUSE_DB_NAME, CLICKHOUSE_PASSWORD
+from config import CLICKHOUSE_HOST, CLICKHOUSE_PORT, CLICKHOUSE_USER, CLICKHOUSE_DB_NAME, CLICKHOUSE_PASSWORD, MYSQL_DB_NAME, MYSQL_HOST, MYSQL_PASSWORD, MYSQL_USER
 
 power_table_query = f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.power (`datetime` DateTime, `counter` UInt32, `phase_a` Nullable(Float64), `phase_b` Nullable(Float64), `phase_c` Nullable(Float64), `total` Nullable(Float64)) ENGINE = MergeTree() PARTITION BY toMonday(datetime) PRIMARY KEY(datetime)"
 traffic_table_query =  f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.traffic (`datetime` DateTime, `counter` UInt32, `traffic_plan_1` Nullable(Float64), `traffic_plan_2` Nullable(Float64), `traffic_plan_3` Nullable(Float64), `traffic_plan_4` Nullable(Float64), `total` Nullable(Float64), `current_traffic` Nullable(Float64)) ENGINE = MergeTree() PARTITION BY toMonday(datetime) PRIMARY KEY(datetime)"
@@ -21,6 +22,9 @@ if __name__ == "__main__":
 
     vega_queue = queue.Queue()
     ws = None
+
+    mysql_client = Counters(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB_NAME, "create table if not exists counters (dev_id text, dev_name text)")
+    
     clickhouse_client = Client(host=CLICKHOUSE_HOST,
                            port=CLICKHOUSE_PORT,
                            user=CLICKHOUSE_USER,
@@ -50,6 +54,8 @@ if __name__ == "__main__":
         
         if not vega_queue.empty():
             counters_data: CounterData = vega_queue.get()
+            if counters_data.action == counters_data.GET_DEVICES:
+                mysql_client.save(counters_data.devices)
             for counter_data in counters_data.get():
                 if counter_data.get("measurement") == "power":
                     values = {

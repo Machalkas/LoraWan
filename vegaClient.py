@@ -56,7 +56,7 @@ class Vega:
     def on_message(self, ws, message):
         dt = CounterData(message)
         if dt.action != dt.N:
-            if dt.action == dt.GET_DEV:
+            if dt.action == dt.GET_DEVICES:
                 self.devices = dt.devices
                 self.get_saved_data_from_devices()
             self.queue.put(dt)

@@ -11,7 +11,7 @@ class Action:
 
 
 class CounterData:  # TODO: refactor this shit
-    GET_DEV = Action("get devices")
+    GET_DEVICES = Action("get devices")
     GET_DATA = Action("get data")
     CONSOLE = Action("console")
     RX = Action("corresponding device")
@@ -29,7 +29,7 @@ class CounterData:  # TODO: refactor this shit
         if not self.status:
             self.error = self.message["err_string"]
         if self.message["cmd"] == 'get_devices_resp':
-            self.action = self.GET_DEV
+            self.action = self.GET_DEVICES
             for dev in self.message["devices_list"]:
                 self.devices.append({"id": dev["devEui"], "name": dev["devName"]})
         elif self.message["cmd"] == "get_data_resp":
