@@ -6,7 +6,7 @@ INFLUX_PORT = 8086
 
 MYSQL_HOST = os.getenv("MYSQL_HOST") or "localhost"
 MYSQL_USER = os.getenv("MYSQL_USER") or "root"
-MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD") or "root"
+MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD") or None
 MYSQL_DB_NAME = os.getenv("MYSQL_DB_NAME") or "vega"
 
 CLICKHOUSE_DB_NAME = "vega"
