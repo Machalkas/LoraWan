@@ -39,8 +39,8 @@ if __name__ == "__main__":
                         args=(config.VEGA_URL,
                               config.VEGA_LOGIN,
                               config.VEGA_PASS,
-                              config.DELAY,
-                              config.DEV_UPDATE_DELAY,
+                              config.DATA_READ_DELAY,
+                              config.COUNTERS_UPDATE_DELAY,
                               vega_queue),
                         daemon=True,
                         name="VegaThread")

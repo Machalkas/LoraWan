@@ -56,3 +56,7 @@ if __name__ == "__main__":
     c.save(counters=[{"kek":"2", "pek":"3"}, {"kek":"2", "pek":"3"}])
     c.save(counters=[{"kek":"qwerty", "pek":"123"}])
     
+
+"""
+docker run -d --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=iotlab -e POSTGRES_USER=admin -e POSTGRES_DB=vega -e PGDATA=/var/lib/postgresql/data/pgdata -v /home/iotlab/postgres:/var/lib/postgresql/data postgres
+"""

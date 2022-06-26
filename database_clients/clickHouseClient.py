@@ -133,3 +133,8 @@ if __name__ == "__main__":
         test2.add_values({"datetime": datetime.now(), "tags": f"tag_2", "fields": f"field_2.{count}"})
         count+=1
         time.sleep(0.2)
+
+
+"""
+docker run -d -p 8123:8123 -p 9000:9000 -v /mnt/d/clickhouse:/var/lib/clickhouse --name clickhouse-server --ulimit nofile=262144:262144 clickhouse/clickhouse-server
+"""
