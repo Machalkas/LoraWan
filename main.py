@@ -6,11 +6,10 @@ from utils.dataClass import CounterData
 from vegaClient import Vega
 from clickhouse_driver import Client
 from database_clients.clickHouseClient import ClickHouseWriter
-from database_clients.mysqlClient import Counters
-
+from database_clients.pgsqlClient import Counters
 from utils import logger
 
-from config import CLICKHOUSE_HOST, CLICKHOUSE_PORT, CLICKHOUSE_USER, CLICKHOUSE_DB_NAME, CLICKHOUSE_PASSWORD, MYSQL_DB_NAME, MYSQL_HOST, MYSQL_PASSWORD, MYSQL_USER
+from config import CLICKHOUSE_HOST, CLICKHOUSE_PORT, CLICKHOUSE_USER, CLICKHOUSE_DB_NAME, CLICKHOUSE_PASSWORD, PGSQL_DB_NAME, PGSQL_HOST, PGSQL_PASSWORD, PGSQL_USER
 
 power_table_query = f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.power (`datetime` DateTime, `counter` UInt32, `phase_a` Nullable(Float64), `phase_b` Nullable(Float64), `phase_c` Nullable(Float64), `total` Nullable(Float64)) ENGINE = Log()"
 traffic_table_query =  f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.traffic (`datetime` DateTime, `counter` UInt32, `traffic_plan_1` Nullable(Float64), `traffic_plan_2` Nullable(Float64), `traffic_plan_3` Nullable(Float64), `traffic_plan_4` Nullable(Float64), `total` Nullable(Float64), `current_traffic` Nullable(Int32)) ENGINE = Log()"
@@ -22,8 +21,7 @@ if __name__ == "__main__":
 
     vega_queue = queue.Queue()
     ws = None
-
-    mysql_client = Counters(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB_NAME, "create table if not exists counters (devEui text, devName text)")
+    pgsql_client = Counters(PGSQL_HOST, PGSQL_USER, PGSQL_PASSWORD, PGSQL_DB_NAME, "create table if not exists counters (devEui text, devName text)")
     
     clickhouse_client = Client(host=CLICKHOUSE_HOST,
                            port=CLICKHOUSE_PORT,
@@ -55,7 +53,7 @@ if __name__ == "__main__":
         if not vega_queue.empty():
             counters_data: CounterData = vega_queue.get()
             if counters_data.action == counters_data.GET_DEVICES:
-                mysql_client.save(counters_data.devices)
+                pgsql_client.save(counters_data.devices)
             for counter_data in counters_data.get():
                 if counter_data.get("measurement") == "power":
                     values = {
