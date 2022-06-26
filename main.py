@@ -23,9 +23,7 @@ if __name__ == "__main__":
     ws = None
     pgsql_client = Counters(PGSQL_HOST, PGSQL_PORT, PGSQL_USER, PGSQL_PASSWORD, PGSQL_DB_NAME, "create table if not exists counters (devEui text, devName text)")
     
-    clickhouse_client = Client(host=CLICKHOUSE_HOST,
-                           port=CLICKHOUSE_PORT,
-                           user=CLICKHOUSE_USER)
+    clickhouse_client = Client(host=CLICKHOUSE_HOST, port=CLICKHOUSE_PORT, user=CLICKHOUSE_USER)
 
     clickhouse_client.execute(f"CREATE DATABASE IF NOT EXISTS {CLICKHOUSE_DB_NAME}")
     power_writer = ClickHouseWriter(clickhouse_client, power_table_query, max_inserts_count=1000, timeout_sec=30)

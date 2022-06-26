@@ -148,7 +148,7 @@ class CounterData:  # TODO: refactor this shit
         logger.debug(f"power data: {data}")
         return {"total": total, "phase_a": phase_a, "phase_b": phase_b, "phase_c": phase_c}
 
-    # @log_exceptions
+    @log_exceptions
     def get_traffic(self, data_part) -> dict:
         traffic = int(data_part[11], 16)
         total = int("".join(data_part[15:11:-1]), 16)

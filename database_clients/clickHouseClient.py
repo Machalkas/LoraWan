@@ -59,13 +59,13 @@ class ClickHouseDriver:
         timer = time.time()
         while True:
             if len(child_self.values_list) >= max_inserts_count:
+                logger.info(f"Size trigger fired - {self.alias_name}")
                 self.global_vars.query_queue.put({"query": child_self.query, "values": child_self.values_list})
                 child_self.values_list = []  # TODO: add blocking values_list
-                logger.info(f"Size trigger fired - {self.alias_name}")
             elif time.time()-timer >= timeout and len(child_self.values_list) >= min_inserts_count:
+                logger.info(f"Timeout trigger fired - {self.alias_name}")
                 self.global_vars.query_queue.put({"query": child_self.query, "values": child_self.values_list})
                 child_self.values_list = []
-                logger.info(f"Timeout trigger fired - {self.alias_name}")
                 timer = time.time()
             await asyncio.sleep(1)
 
