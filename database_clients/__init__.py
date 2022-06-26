@@ -1,16 +1,18 @@
 from utils import logger
 from abc import ABC, abstractmethod
 
-def mysql_connect(func):
+def db_connect(func):
     def wrapper(self: DBClient, *args, **kargs):
-        db_connect = self.connect(host=self.db_url, user=self.db_user, password=self.db_password, database=self.database)
-        return func(self,  mysql_connection=db_connect, *args, **kargs)
+        db_connect = self.connect(host=self.host, port=self.port, user=self.db_user, password=self.db_password, database=self.database)
+        kargs["db_connection"] = db_connect
+        return func(self, *args, **kargs)
     return wrapper
 
 
 class DBClient(ABC):
     def __init__(self,
-                 db_url: str,
+                 host: str,
+                 port: str,
                  db_user: str,
                  db_password: str,
                  database: str = "default",
@@ -26,27 +28,25 @@ class DBClient(ABC):
         else:
             self.table_columns = table_columns
             self.table_name = table_name
-        self.db_url = db_url
+        self.host = host
+        self.port = port
         self.db_user = db_user
         self.db_password = db_password
         self.database = database
 
-        if create_table_query:
-            db_connect = self.connect(host=db_url, user=db_user, password=db_password, database=database)
-            with db_connect:
-                cur = db_connect.cursor()
-                cur.execute(create_table_query)
-                db_connect.commit()
-        logger.info(f"create table {self.table_name}")
+
+    @abstractmethod
+    def create_tables(self, db_connection, create_table_query):
+        ...
     
     @abstractmethod
-    def connect(self, host,  port, user, password, database) -> None:
+    def connect(self, host, port, user, password, database) -> None:
         ...
 
     @abstractmethod
     def save(self, data) -> None:
         ...
 
-    @abstractmethod
-    def get(self, data) -> None:
-        ...
+    # @abstractmethod
+    # def get(self, data) -> None:
+    #     ...

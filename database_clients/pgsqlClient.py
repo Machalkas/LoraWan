@@ -1,14 +1,14 @@
-import pymysql
-from utils import logger, log_exceptions
+import psycopg2
 from database_clients import DBClient, db_connect
+from utils import logger, log_exceptions
+from config import PGSQL_HOST, PGSQL_DB_NAME, PGSQL_PASSWORD, PGSQL_PORT, PGSQL_USER
 
-from config import MYSQL_DB_NAME, MYSQL_HOST, MYSQL_PASSWORD, MYSQL_USER
 
 
 class Counters(DBClient):
     def __init__(self,
                  host: str,
-                 port: str,
+                 port: int,
                  db_user: str,
                  db_password: str,
                  database: str = "default",
@@ -19,8 +19,8 @@ class Counters(DBClient):
         if create_table_query:
             self.create_tables(create_table_query=create_table_query)
 
-    def connect(self, host, user, password, database) -> pymysql.Connection:
-        return pymysql.connect(host=host, user=user, password=password, database=database)
+    def connect(self, host, port, user, password, database):
+        return psycopg2.connect(host=host, user=user, password=password, dbname=database)
 
     def wrap_string(self, string: str):
         return f"'{string}'"
@@ -33,9 +33,7 @@ class Counters(DBClient):
             counters_string += f"({', '.join([self.wrap_string(counter.get(t_key)) for t_key in self.table_columns])}),"
         counters_string = counters_string[:-1]
         sql_query = f"insert into {self.table_name} ({', '.join(self.table_columns)}) values {counters_string};"
-        
         logger.debug(f"sql query: \"{sql_query}\"")
-
         with db_connection:
             cur = db_connection.cursor()
             cur.execute(f"TRUNCATE TABLE {self.table_name}")
@@ -54,7 +52,7 @@ class Counters(DBClient):
 
 
 if __name__ == "__main__":
-    c = Counters(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB_NAME, "create table if not exists counters (kek text, pek int)")
-    c.save([{"kek":"2", "pek":"3"}, {"kek":"2", "pek":"3"}])
-    c.save([{"kek":"qwerty", "pek":"123"}])
+    c = Counters(PGSQL_HOST, PGSQL_PORT, PGSQL_USER, PGSQL_PASSWORD, PGSQL_DB_NAME, "create table if not exists counters (kek text, pek int)")
+    c.save(counters=[{"kek":"2", "pek":"3"}, {"kek":"2", "pek":"3"}])
+    c.save(counters=[{"kek":"qwerty", "pek":"123"}])
     
