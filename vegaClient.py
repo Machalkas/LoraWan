@@ -54,8 +54,8 @@ class Vega:
         #     return
         for device in self.devices:
             self.ws.send(json.dumps({'cmd': 'get_data_req',
-                                     'devEui': device["id"],
-                                     'select': {'direction': 'UPLINK', 'date_from': f"{int((time()-self.delay)*1000)}"}}))
+                                     'devEui': device["devEui"],
+                                     'select': {'direction': 'UPLINK', 'date_from': f"{int((time()-self.delay*2)*1000)}"}}))
         logger.info("send get_data_req")
         self.block_get_data = True
 

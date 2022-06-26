@@ -31,7 +31,7 @@ class CounterData:  # TODO: refactor this shit
         if self.message["cmd"] == 'get_devices_resp':
             self.action = self.GET_DEVICES
             for dev in self.message["devices_list"]:
-                self.devices.append({"id": dev["devEui"], "name": dev["devName"]})
+                self.devices.append({"devEui": dev["devEui"], "devName": dev["devName"]})
         elif self.message["cmd"] == "get_data_resp":
             self.action = self.GET_DATA
             self.data.append({'dev_id': self.message["devEui"],
@@ -55,7 +55,7 @@ class CounterData:  # TODO: refactor this shit
     def __str__(self) -> str:
         st = ""
         if self.devices != []:
-            st += "devices:"+str([i["id"] for i in self.devices])
+            st += "devices:"+str([i["devEui"] for i in self.devices])
         if self.data != []:
             st += "data:"+str(self.data)
         if self.action == self.N:
@@ -109,12 +109,12 @@ class CounterData:  # TODO: refactor this shit
                                  int(hour),
                                  int(min),
                                  int(sec)) - timedelta(hours=3)
-            logger.debug(f"get data with timestamp {dt}")
 
             counter_factory_id = int(''.join(data_part[3::-1]), 16)
 
+            logger.debug(f"get data for counter {counter_factory_id} with timestamp {dt}")
             measurement = {
-                "measurement": "power",
+                "measurement": None,
                 "tags": {"counter": counter_factory_id, "room": 0},
                 "time": datetime(int("20" + str(year)),
                                  int(mon),
@@ -127,8 +127,10 @@ class CounterData:  # TODO: refactor this shit
 
             if com == 1 and id == 1:
                 measurement["fields"] = self.get_traffic(data_part)
+                measurement["measurement"] = "traffic"
             elif com == 1 and id == 5:
                 measurement["fields"] = self.get_power(data_part)
+                measurement["measurement"] = "power"
             elif com == 1 and id == 13:
                 pass
                 # print(len("".join([str(bin(int(i,16)))[2:] for i in data_part[10:14]])), "".join([str(bin(int(i,16)))[2:] for i in data_part[10:14]]))
@@ -142,6 +144,8 @@ class CounterData:  # TODO: refactor this shit
         phase_a = int("".join(data_part[34:30:-1]), 16)
         phase_b = int("".join(data_part[38:34:-1]), 16)
         phase_c = int("".join(data_part[42:38:-1]), 16)
+        data = {"total": total, "phase_a": phase_a, "phase_b": phase_b, "phase_c": phase_c}
+        logger.debug(f"power data: {data}")
         return {"total": total, "phase_a": phase_a, "phase_b": phase_b, "phase_c": phase_c}
 
     # @log_exceptions
@@ -152,6 +156,8 @@ class CounterData:  # TODO: refactor this shit
         t2 = int("".join(data_part[23:19:-1]), 16)
         t3 = int("".join(data_part[27:23:-1]), 16)
         t4 = int("".join(data_part[31:27:-1]), 16)
+        data = {"current_traffic": traffic, "total": total, "traffic_plan_1": t1, "traffic_plan_2": t2, "traffic_plan_3": t3, "traffic_plan_4": t4}
+        logger.debug(f"traffic data: {data}")
         return {"current_traffic": traffic, "total": total, "traffic_plan_1": t1, "traffic_plan_2": t2, "traffic_plan_3": t3, "traffic_plan_4": t4}
 
 if __name__ == "__main__":
