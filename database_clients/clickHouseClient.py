@@ -48,10 +48,11 @@ class ClickHouseGlobals:
                 query_dict: dict = self.global_vars.query_queue.get()
                 try:
                     self.clickhouse_client.execute(query_dict["query"], query_dict["values"], types_check=True)  # TODO: catch exceptions here
+                    alias = query_dict.get("alias_name")
                     inserts_count = len(query_dict["values"])
-                    logger.important(f"Write to db ({inserts_count}) - {self.alias_name}")
+                    logger.important(f"Write to db ({inserts_count}) - {alias}")
                 except Exception as e:
-                    logger.error(f"Error in {self.alias_name} while try too write data do db: {e}")
+                    logger.error(f"Error in {alias} while try too write data do db: {e}")
             await asyncio.sleep(1)
         loop.stop()
 
@@ -64,7 +65,7 @@ class ClickHouseGlobals:
                 child_self.values_list = []  # TODO: add blocking values_list
             elif time.time()-timer >= timeout and len(child_self.values_list) >= min_inserts_count:
                 logger.info(f"Timeout trigger fired - {self.alias_name}")
-                self.global_vars.query_queue.put({"query": child_self.query, "values": child_self.values_list})
+                self.global_vars.query_queue.put({"query": child_self.query, "values": child_self.values_list, "alias_name": child_self.alias_name})
                 child_self.values_list = []
                 timer = time.time()
             await asyncio.sleep(1)
