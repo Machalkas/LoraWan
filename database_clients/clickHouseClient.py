@@ -16,7 +16,7 @@ class ClickHouseStorage:
     query_queue = Queue(maxsize=0)
 
 
-class ClickHouseDriver:
+class ClickHouseGlobals:
     def __init__(self,
                  clickhouse_client: Client,
                  child_self,
@@ -71,7 +71,7 @@ class ClickHouseDriver:
             await asyncio.sleep(1)
 
 
-class ClickHouseWriter(ClickHouseDriver):
+class ClickHouseWriter(ClickHouseGlobals):
     def __init__(self,
                  clickhouse_client: Client,
                  create_table_query: str = None,
