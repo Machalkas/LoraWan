@@ -1,5 +1,4 @@
-env
-leg_env
+gate_env
 .vscode
 data.txt
 __pycache__
