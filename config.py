@@ -27,4 +27,10 @@ VEGA_LOGIN = os.getenv("VEGA_LOGIN") or "router"
 DATA_READ_DELAY = os.getenv("DATA_READ_DELAY") or 15*60
 COUNTERS_UPDATE_DELAY = os.getenv("COUNTERS_UPDATE_DELAY") or 60*30
 
+MQTT_HOST = os.getenv("MQTT_HOST", "localhost")
+MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
+MQTT_USERNAME = os.getenv("MQTT_USERNAME")
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
+MQTT_TOPICS_TO_SUBSCRIBE = [ topic.strip() for topic in os.getenv("MQTT_TOPICKS_TO_SUBSCRIBE", "").split(",")]
+
 DEBUG = False if os.getenv("DEBUG") == "false".lower() else True

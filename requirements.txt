@@ -6,6 +6,7 @@ colorama==0.4.5
 django-cleanup==5.1.0
 django-smtp-ssl==1.0
 docopt==0.6.2
+gmqtt==0.6.11
 idna==3.3
 influxdb==5.3.1
 influxdb-client==1.26.0
