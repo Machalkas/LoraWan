@@ -35,4 +35,6 @@ MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
 MQTT_CLIENT_ID = os.getenv("MQTT_CLIENT_ID", f"LoraGateway-{uuid.uuid4()}")
 MQTT_TOPICS_TO_SUBSCRIBE = [ topic.strip() for topic in os.getenv("MQTT_TOPICKS_TO_SUBSCRIBE", "kek/#").split(",")]
 
+DT_FORMAT = "%Y-%m-%d %H:%M:%S"
+
 DEBUG = False if os.getenv("DEBUG") == "false".lower() else True

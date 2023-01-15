@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import queue
 import time
 from threading import Thread
@@ -60,11 +61,12 @@ async def main():
             counters_data: CounterData = vega_queue.get()
             if counters_data.action == counters_data.GET_DEVICES:
                 # pgsql_client.save(counters_data.devices)
-                await mqtt_client.publish("device/*/update_energy_meters", counters_data.devices)
+                await mqtt_client.publish(f"device/update_energy_meters", counters_data.devices)
             for counter_data in counters_data.get():
                 if counter_data.get("measurement") == "power":
                     values = {
-                        "datetime": str(counter_data.get("time")),
+                        "metric": "power",
+                        "datetime": datetime.strftime(counter_data.get("time"), config.DT_FORMAT),
                         "counter": counter_data.get("tags").get("counter"),
                         "total": counter_data.get("fields").get("total"),
                         "phase_a": counter_data.get("fields").get("phase_a"),
@@ -72,10 +74,11 @@ async def main():
                         "phase_c": counter_data.get("fields").get("phase_c")
                     }
                     # power_writer.add_values(values)
-                    await mqtt_client.publish("device/*/save_statistic", values)
+                    await mqtt_client.publish(f"device/save_statistic", values)
                 if counter_data.get("measurement") == "traffic":
                     values = {
-                        "datetime": str(counter_data.get("time")),
+                        "metric": "traffic",
+                        "datetime": datetime.strftime(counter_data.get("time"), config.DT_FORMAT),
                         "counter": counter_data.get("tags").get("counter"),
                         "total": counter_data.get("fields").get("total"),
                         "traffic_plan_1": counter_data.get("fields").get("traffic_plan_1"),
@@ -85,7 +88,7 @@ async def main():
                         "current_traffic": counter_data.get("fields").get("current_traffic")
                     }
                     # traffic_writer.add_values(values)
-                    await mqtt_client.publish("device/*/save_statistic", values)
+                    await mqtt_client.publish(f"device/save_statistic", values)
 
         await asyncio.sleep(.2)
                 # history_writer.add_values({
