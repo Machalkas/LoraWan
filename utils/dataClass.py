@@ -31,7 +31,7 @@ class CounterData:  # TODO: refactor this shit
         if self.message["cmd"] == 'get_devices_resp':
             self.action = self.GET_DEVICES
             for dev in self.message["devices_list"]:
-                self.devices.append({"devEui": dev["devEui"], "devName": dev["devName"]})
+                self.devices.append({"device_eui": dev["devEui"], "device": dev["devName"]})
         elif self.message["cmd"] == "get_data_resp":
             self.action = self.GET_DATA
             self.data.append({'dev_id': self.message["devEui"],

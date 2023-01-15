@@ -14,8 +14,7 @@ import config
 # traffic_table_query =  f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.traffic (`datetime` DateTime, `counter` UInt32, `traffic_plan_1` Nullable(Float64), `traffic_plan_2` Nullable(Float64), `traffic_plan_3` Nullable(Float64), `traffic_plan_4` Nullable(Float64), `total` Nullable(Float64), `current_traffic` Nullable(Int32)) ENGINE = Log()"
 # history_table_query = f"CREATE TABLE IF NOT EXISTS {CLICKHOUSE_DB_NAME}.history (`datetime` DateTime, `tags` String, `fields` String) ENGINE=Log()"
 
-if __name__ == "__main__":
-
+async def main():
     logger.header("iot vega broker")
 
     vega_queue = queue.Queue()
@@ -27,7 +26,8 @@ if __name__ == "__main__":
         password=config.MQTT_PASSWORD,
         topics_to_subscribe=config.MQTT_TOPICS_TO_SUBSCRIBE
     )
-    asyncio.create_task(mqtt_client)
+    asyncio.get_event_loop().create_task(mqtt_client.connect())
+    await asyncio.sleep(5)
     ws = None
     # pgsql_client = Counters(PGSQL_HOST, PGSQL_PORT, PGSQL_USER, PGSQL_PASSWORD, PGSQL_DB_NAME, "create table if not exists counters (devEui text, devName text)")
     
@@ -53,17 +53,18 @@ if __name__ == "__main__":
         if not ws.is_alive():
             logger.warning("vega stop")
             ws = None
-            time.sleep(5)
+            await asyncio.sleep(5)
+            continue
         
         if not vega_queue.empty():
             counters_data: CounterData = vega_queue.get()
             if counters_data.action == counters_data.GET_DEVICES:
                 # pgsql_client.save(counters_data.devices)
-                asyncio.run(mqtt_client.publish("device/*/update_energy_meters", counter_data))
+                await mqtt_client.publish("device/*/update_energy_meters", counters_data.devices)
             for counter_data in counters_data.get():
                 if counter_data.get("measurement") == "power":
                     values = {
-                        "datetime": counter_data.get("time"),
+                        "datetime": str(counter_data.get("time")),
                         "counter": counter_data.get("tags").get("counter"),
                         "total": counter_data.get("fields").get("total"),
                         "phase_a": counter_data.get("fields").get("phase_a"),
@@ -71,10 +72,10 @@ if __name__ == "__main__":
                         "phase_c": counter_data.get("fields").get("phase_c")
                     }
                     # power_writer.add_values(values)
-                    asyncio.run(mqtt_client.publish("device/*/save_statistic", values))
+                    await mqtt_client.publish("device/*/save_statistic", values)
                 if counter_data.get("measurement") == "traffic":
                     values = {
-                        "datetime": counter_data.get("time"),
+                        "datetime": str(counter_data.get("time")),
                         "counter": counter_data.get("tags").get("counter"),
                         "total": counter_data.get("fields").get("total"),
                         "traffic_plan_1": counter_data.get("fields").get("traffic_plan_1"),
@@ -84,15 +85,16 @@ if __name__ == "__main__":
                         "current_traffic": counter_data.get("fields").get("current_traffic")
                     }
                     # traffic_writer.add_values(values)
-                    asyncio.run(mqtt_client.publish("device/*/save_statistic", values))
+                    await mqtt_client.publish("device/*/save_statistic", values)
 
-
+        await asyncio.sleep(.2)
                 # history_writer.add_values({
                 #     "datetime": datetime.now(),
                 #     "tags": str(counters_data.action),
                 #     "fields": str(counters_data)
                 # })
 
-
+if __name__ == "__main__":
+    asyncio.run(main())
                 
 

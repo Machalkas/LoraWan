@@ -1,4 +1,5 @@
 import os
+import uuid
 
 INFLUX_DB_NAME = "vega"
 INFLUX_HOST = "192.168.0.123"
@@ -31,6 +32,7 @@ MQTT_HOST = os.getenv("MQTT_HOST", "localhost")
 MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
 MQTT_USERNAME = os.getenv("MQTT_USERNAME")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
-MQTT_TOPICS_TO_SUBSCRIBE = [ topic.strip() for topic in os.getenv("MQTT_TOPICKS_TO_SUBSCRIBE", "").split(",")]
+MQTT_CLIENT_ID = os.getenv("MQTT_CLIENT_ID", f"LoraGateway-{uuid.uuid4()}")
+MQTT_TOPICS_TO_SUBSCRIBE = [ topic.strip() for topic in os.getenv("MQTT_TOPICKS_TO_SUBSCRIBE", "kek/#").split(",")]
 
 DEBUG = False if os.getenv("DEBUG") == "false".lower() else True

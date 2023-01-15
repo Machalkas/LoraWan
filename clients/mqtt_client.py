@@ -3,6 +3,7 @@ import json
 from typing import Union
 from gmqtt import Client
 from utils import logger
+import config
 
 
 class MqttClient:
@@ -13,7 +14,7 @@ class MqttClient:
                  username: str = None,
                  password: str = None,
                  topics_to_subscribe: list = None):
-        self.client = Client("LoraWAN_api_service")
+        self.client = Client(config.MQTT_CLIENT_ID)
         self.handler = handler
         self.host = host
         self.port = port
@@ -58,6 +59,7 @@ class MqttClient:
     async def connect(self):
         try:
             await self.client.connect(self.host, self.port)
+            print(f"Connected to mqtt ({self.host}:{self.port})")
         except Exception as ex:
             logger.error(f"Fail to connect to mqtt: {ex}")
             await self.client.disconnect()
@@ -67,6 +69,7 @@ class MqttClient:
     async def publish(self, topic: str, payload: Union[str, dict], qos: int = 1):
         if isinstance(payload, dict):
             payload = json.dumps(payload)
+        print("publish", topic, payload)
         self.client.publish(topic, payload, qos)
 
 
