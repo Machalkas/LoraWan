@@ -28,7 +28,7 @@ async def main():
         topics_to_subscribe=config.MQTT_TOPICS_TO_SUBSCRIBE
     )
     asyncio.get_event_loop().create_task(mqtt_client.connect())
-    await asyncio.sleep(5)
+    await asyncio.sleep(1)
     ws = None
     # pgsql_client = Counters(PGSQL_HOST, PGSQL_PORT, PGSQL_USER, PGSQL_PASSWORD, PGSQL_DB_NAME, "create table if not exists counters (devEui text, devName text)")
     
