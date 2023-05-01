@@ -31,6 +31,10 @@ class MqttHandler(BaseMqttHandler):
     @mqtt_api.handler("gateway/add_device", NewDeviceDeserializer)
     async def save_statistic(self, message: NewDeviceDeserializer, topic: str):
         data = message.get_dict()
+        data = {
+            "cmd": "manage_devices_req",
+            "devices_list": [data]
+        }
         globals.vega_outbox_queue.put(data)
     
     @mqtt_api.not_found_handler()

@@ -27,6 +27,22 @@ class Vega:
                                          on_close=self.on_close)
         self.ws.run_forever()
 
+    def queue_listener(self, ws):
+        vega_thread = threading.current_thread()
+        while not getattr(vega_thread, "stop", False):
+            if not self.outbox_queue.empty():
+                send_message = self.outbox_queue.get()
+                if isinstance(send_message, dict):
+                    send_message = json.dumps(send_message)
+                if isinstance(send_message, str):
+                    logger.debug(f"send message to vega: {send_message}")
+                    try:
+                        ws.send(send_message)
+                    except Exception as ex:
+                        print(ex)
+            sleep(.2)
+
+
     def on_open(self, ws):
         def run():
             try:
@@ -38,13 +54,6 @@ class Vega:
                      'password': self.password}))
                 vega_thread = threading.current_thread()
                 while not getattr(vega_thread, "stop", False):
-                    if not self.outbox_queue.empty():
-                        send_message = self.outbox_queue.get()
-                        if isinstance(send_message, dict):
-                            send_message = json.dumps(send_message)
-                        if isinstance(send_message, str):
-                            logger.debug(f"send message to vega: {send_message}")
-                            ws.send(send_message)
                     if self.devices != []:
                         self.get_saved_data_from_devices()
                         logger.info("request saved data from")
@@ -56,6 +65,7 @@ class Vega:
             except Exception as ex:
                 logger.error(f"Vega error: {ex}")
         self.thread = Thread(target=run, daemon=True, name="WsWriterThread").start()
+        self.queue_thread = Thread(target=self.queue_listener, args=(ws,), daemon=True, name="WsQueueThread").start()
 
     def get_saved_data_from_devices(self):
         # if self.block_get_data:
@@ -68,6 +78,7 @@ class Vega:
         self.block_get_data = True
 
     def on_message(self, ws, message):
+        logger.debug(message)
         dt = CounterData(message)
         if dt.action != dt.N:
             if dt.action == dt.GET_DEVICES:
@@ -82,4 +93,6 @@ class Vega:
 
     def on_close(self, ws, close_status_code, close_msg):
         self.thread.stop = True
+        self.queue_thread.stop = True
         self.thread.join()
+        self.queue_thread.join()
