@@ -11,8 +11,9 @@ from utils import logger
 
 class Vega:
     def __init__(self, url: str, login: str, password: str, delay: int,
-                 dev_delay: int, queue: queue) -> None:
-        self.queue = queue
+                 dev_delay: int, inbox_queue: queue.Queue, outbox_queue: queue.Queue) -> None:
+        self.inbox_queue = inbox_queue
+        self.outbox_queue = outbox_queue
         self.login = login
         self.password = password
         self.delay = delay
@@ -37,6 +38,13 @@ class Vega:
                      'password': self.password}))
                 vega_thread = threading.current_thread()
                 while not getattr(vega_thread, "stop", False):
+                    if not self.outbox_queue.empty():
+                        send_message = self.outbox_queue.get()
+                        if isinstance(send_message, dict):
+                            send_message = json.dumps(send_message)
+                        if isinstance(send_message, str):
+                            logger.debug(f"send message to vega: {send_message}")
+                            ws.send(send_message)
                     if self.devices != []:
                         self.get_saved_data_from_devices()
                         logger.info("request saved data from")
@@ -65,7 +73,7 @@ class Vega:
             if dt.action == dt.GET_DEVICES:
                 self.devices = dt.devices
                 # self.get_saved_data_from_devices()
-            self.queue.put(dt)
+            self.inbox_queue.put(dt)
         # if dt.action != dt.CONSOLE or CONSOLE_LOG:
         #     logger.info(f"{dt.action}")
 

@@ -2,13 +2,14 @@ import asyncio
 import json
 from typing import Union
 from gmqtt import Client
+from handlers.mqtt_handler import MqttHandler
 from utils import logger
 import config
 
 
 class MqttClient:
     def __init__(self,
-                 handler,
+                 handler: MqttHandler,
                  host: str,
                  port: int = 1883,
                  username: str = None,
@@ -37,6 +38,7 @@ class MqttClient:
         if topic.endswith("response"):
             return
         payload = payload.decode('utf-8')
+        payload = json.loads(payload)
         result = asyncio.ensure_future(self.handler.handle_request(payload, topic), loop=self.event_loop)
 
     def on_connect(self, client, flags, rc, properties):
