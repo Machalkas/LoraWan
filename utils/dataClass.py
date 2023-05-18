@@ -102,13 +102,16 @@ class CounterData:  # TODO: refactor this shit
             day = int(data_part[7])
             mon = int(data_part[8])
             year = int(data_part[9])
-
-            dt = datetime(int("20" + str(year)),
-                                 int(mon),
-                                 int(day),
-                                 int(hour),
-                                 int(min),
-                                 int(sec)) - timedelta(hours=3)
+            try:
+                dt = datetime(int("20" + str(year)),
+                                    int(mon),
+                                    int(day),
+                                    int(hour),
+                                    int(min),
+                                    int(sec)) - timedelta(hours=3)
+            except ValueError as ex:
+                logger.error(f"Fail to extract datetime from raw data:{ex}")
+                continue
 
             counter_factory_id = int(''.join(data_part[3::-1]), 16)
 
