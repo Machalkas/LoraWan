@@ -69,13 +69,13 @@ class NewDeviceDeserializer(BaseDeserializer):
     @catch_key_error
     def deserialize(self, message: dict):
         self.devEui: str = message["dev_eui"]
-        self.Class: str = Class(message["class"]).value
+        self.Class: str = Class(message["dev_class"]).value
         self.devName: str = message.get("dev_name")
         self.OTAA: OTAA | None = OTAA(message["otaa"]) if message.get("otaa") else None
 
 
 if __name__ == "__main__":
-    x = NewDeviceDeserializer('{"dev_eui":"70B3D58FF101475A", "class": "CLASS_C", "dev_name": "test"}')
+    x = NewDeviceDeserializer('{"dev_eui":"70B3D58FF101475A", "dev_class": "CLASS_C", "dev_name": "test"}')
     print(x.get_dict())
 # class NewDevicesListDeserializer(BaseDeserializer):
 #     @catch_key_error
