@@ -38,6 +38,8 @@ class Vega:
                     logger.debug(f"send message to vega: {send_message}")
                     try:
                         ws.send(send_message)
+                        sleep(0.2)
+                        ws.send(json.dumps({'cmd': 'get_devices_req'})) # retrieve counters list
                     except Exception as ex:
                         print(ex)
             sleep(.2)
